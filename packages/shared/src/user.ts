@@ -1,8 +1,5 @@
 import { z } from "zod";
 
-export const CountrySchema = z.enum(["US", "IN"]);
-export type Country = z.infer<typeof CountrySchema>;
-
 export const TierSchema = z.enum(["free", "premium"]);
 export type Tier = z.infer<typeof TierSchema>;
 
@@ -22,7 +19,6 @@ export const UserSchema = z.object({
   email: z.string().email().nullable(),
   phoneNumber: z.string().nullable(),
   authProvider: AuthProviderSchema,
-  country: CountrySchema,
   tier: TierSchema,
   inboundEmail: z.string(),
   notificationPreferences: NotificationPreferencesSchema,

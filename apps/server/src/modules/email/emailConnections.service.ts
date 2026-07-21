@@ -199,7 +199,7 @@ export async function processMessage(
       subscriptionMatch.merchantRaw,
       subscriptionMatch.cadence,
       subscriptionMatch.amount,
-      subscriptionMatch.currency ?? "USD",
+      subscriptionMatch.currency ?? "INR",
     );
     await prisma.scannedEmailMessage.create({ data: { ...base, status: "saved" } });
     return;

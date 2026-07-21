@@ -7,11 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Country {
-  US
-  IN
-}
-
 enum Tier {
   free
   premium
@@ -37,7 +32,6 @@ model User {
   phoneNumber             String?      @unique
   passwordHash            String?
   authProvider            AuthProvider @default(password)
-  country                 Country
   tier                    Tier         @default(free)
   pushToken               String?
   billingCustomerId       String?
@@ -170,11 +164,6 @@ model WarrantyItem {
   @@index([userId])
 }
 
-enum BankProvider {
-  plaid
-  account_aggregator
-}
-
 enum SubscriptionCadence {
   weekly
   monthly
@@ -188,12 +177,11 @@ enum SubscriptionStatus {
 }
 
 // A link session the user has started but not yet completed (hosted-link flow) — lets the
-// webhook/poll handler map a Plaid link_token back to the Thrifty user who started it.
+// poll handler map an AA consent handle back to the Thrifty user who started it.
 model PendingBankLink {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider  BankProvider
   linkToken String   @unique
   createdAt DateTime @default(now())
 
@@ -204,16 +192,14 @@ model LinkedBankAccount {
   id                   String       @id @default(uuid())
   userId               String
   user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider             BankProvider
   providerItemId       String       @unique
   encryptedAccessToken String
   institutionName      String?
   lastSyncedAt         DateTime?
   createdAt            DateTime     @default(now())
 
-  // Account Aggregator-specific: which FI-data session produced this account, which FIP
-  // (Financial Information Provider — the user's actual bank) it came from, and the consent
-  // that authorized it. Null for Plaid-linked (US) accounts.
+  // Which FI-data session produced this account, which FIP (Financial Information Provider —
+  // the user's actual bank) it came from, and the consent that authorized it.
   aaSessionId   String?
   fipId         String?
   bankConsentId String?
@@ -357,7 +343,7 @@ enum EmailSyncStatus {
 // Tracks an in-flight OAuth authorization (authorize -> provider consent screen -> callback).
 // The `state` query param sent to the provider is this row's id, so the callback can recover
 // which user/provider started the flow without trusting anything the provider redirect sends
-// back beyond that id. Mirrors PendingBankLink's role for Plaid's hosted-link flow.
+// back beyond that id. Mirrors PendingBankLink's role for the Account Aggregator hosted-link flow.
 model PendingEmailOAuth {
   id                      String        @id @default(uuid())
   userId                  String
@@ -497,7 +483,6 @@ model Claim {
 }
 
 enum ChargeProvider {
-  stripe
   razorpay
 }
 

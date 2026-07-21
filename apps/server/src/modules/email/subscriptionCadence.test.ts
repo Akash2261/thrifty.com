@@ -6,9 +6,9 @@ describe("detectSubscriptionLanguage", () => {
     const match = detectSubscriptionLanguage(
       "info@netflix.com",
       "Your receipt",
-      "Thanks for being a member. Amount charged: $15.49",
+      "Thanks for being a member. Amount charged: ₹199",
     );
-    expect(match).toEqual({ merchantRaw: "Netflix", cadence: "monthly", amount: 15.49, currency: "USD" });
+    expect(match).toEqual({ merchantRaw: "Netflix", cadence: "monthly", amount: 199, currency: "INR" });
   });
 
   it("recognizes generic renewal language from an unknown sender", () => {
@@ -44,17 +44,17 @@ describe("detectSubscriptionLanguage", () => {
     const match = detectSubscriptionLanguage(
       "billing@example-app.com",
       "Payment receipt",
-      "Your monthly subscription has been renewed. Amount: USD 59.99",
+      "Your monthly subscription has been renewed. Amount: INR 599.00",
     );
-    expect(match).toEqual({ merchantRaw: "example-app", cadence: "monthly", amount: 59.99, currency: "USD" });
+    expect(match).toEqual({ merchantRaw: "example-app", cadence: "monthly", amount: 599, currency: "INR" });
   });
 
-  it("recognizes a newly-added known subscription sender (Disney+)", () => {
+  it("recognizes a newly-added known subscription sender (ZEE5)", () => {
     const match = detectSubscriptionLanguage(
-      "no-reply@disneyplus.com",
-      "Your Disney+ receipt",
-      "Thanks for your subscription. Amount charged: $13.99",
+      "no-reply@zee5.com",
+      "Your ZEE5 receipt",
+      "Thanks for your subscription. Amount charged: ₹149",
     );
-    expect(match).toEqual({ merchantRaw: "Disney+", cadence: "monthly", amount: 13.99, currency: "USD" });
+    expect(match).toEqual({ merchantRaw: "ZEE5", cadence: "monthly", amount: 149, currency: "INR" });
   });
 });

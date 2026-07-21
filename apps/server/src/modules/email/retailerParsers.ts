@@ -34,7 +34,7 @@ const ORDER_SUBJECT_HINT = /\b(order|shipped|shipping|delivered|invoice|receipt|
 
 const amazonParser: RetailerParser = {
   displayName: "Amazon",
-  matchesSender: (from) => /@(amazon\.(in|com))/i.test(from),
+  matchesSender: (from) => /@amazon\.in/i.test(from),
   parse(subject, textBody) {
     if (!ORDER_SUBJECT_HINT.test(subject)) return null;
 
@@ -43,9 +43,7 @@ const amazonParser: RetailerParser = {
       firstMatch(/["“]([^"”]{3,80})["”]/i, textBody) ??
       "Amazon order";
     const orderIdentifier = firstMatch(/Order\s*#\s*([\d-]{10,})/i, textBody);
-    const inr = firstPrice(textBody, "₹|Rs\\.?", "INR");
-    const usd = firstPrice(textBody, "\\$", "USD");
-    const priceInfo = inr ?? usd;
+    const priceInfo = firstPrice(textBody, "₹|Rs\\.?", "INR");
 
     return {
       itemName,
@@ -145,9 +143,7 @@ const appleParser: RetailerParser = {
     if (!/\b(receipt|order|invoice)\b/i.test(subject)) return null;
     const orderIdentifier = firstMatch(/Order\s*(?:ID|No\.?)\s*[:#]?\s*([A-Z0-9]{8,})/i, textBody);
     const itemName = firstMatch(/["“]([^"”]{3,80})["”]/i, textBody) ?? "Apple order";
-    const usd = firstPrice(textBody, "\\$", "USD");
-    const inr = firstPrice(textBody, "₹|Rs\\.?", "INR");
-    const priceInfo = usd ?? inr;
+    const priceInfo = firstPrice(textBody, "₹|Rs\\.?", "INR");
     return {
       itemName,
       retailer: "Apple",

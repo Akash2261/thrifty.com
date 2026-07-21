@@ -3,7 +3,6 @@ import { z } from "zod";
 import {
   createLinkSession,
   pollLinkSession,
-  handlePlaidWebhook,
   listLinkedAccounts,
   syncAllAccounts,
 } from "./bank.service";
@@ -36,16 +35,6 @@ export default async function bankRoutes(fastify: FastifyInstance) {
       if (err instanceof AppError) return reply.code(err.status).send({ error: err.message });
       throw err;
     }
-  });
-
-  // Plaid's webhook receiver — not authenticated with a user JWT since Plaid calls this directly.
-  fastify.post("/bank/webhook", async (request, reply) => {
-    try {
-      await handlePlaidWebhook(request.body);
-    } catch (err) {
-      request.log.error(err, "Failed to process Plaid webhook");
-    }
-    return reply.send({ received: true });
   });
 
   fastify.get("/bank/accounts", { preHandler: fastify.authenticate }, async (request, reply) => {

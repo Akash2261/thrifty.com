@@ -1,4 +1,3 @@
-import * as WebBrowser from "expo-web-browser";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -13,16 +12,8 @@ import {
 } from "react-native";
 import type { DetectedSubscription, LinkedBankAccount } from "@thrifty/shared";
 import { ApiError } from "../../../src/api/client";
-import {
-  confirmSubscriptionInUse,
-  createLinkSession,
-  listLinkedAccounts,
-  listSubscriptions,
-  pollLinkStatus,
-  syncBankAccounts,
-} from "../../../src/api/substop";
+import { confirmSubscriptionInUse, listLinkedAccounts, listSubscriptions, syncBankAccounts } from "../../../src/api/substop";
 import { track } from "../../../src/lib/analytics";
-import { useSession } from "../../../src/ctx/auth";
 import { cardShadow, colors, radii, spacing } from "../../../src/theme/colors";
 
 const CADENCE_LABEL: Record<DetectedSubscription["cadence"], string> = {
@@ -39,13 +30,11 @@ function sourceLabel(sub: DetectedSubscription): string {
 
 export default function SubStopScreen() {
   const router = useRouter();
-  const { user } = useSession();
   const [accounts, setAccounts] = useState<LinkedBankAccount[] | null>(null);
   const [subs, setSubs] = useState<DetectedSubscription[]>([]);
   const [monthlyTotal, setMonthlyTotal] = useState(0);
   const [currency, setCurrency] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLinking, setIsLinking] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const load = useCallback(async () => {
@@ -72,46 +61,7 @@ export default function SubStopScreen() {
   );
 
   function handleLinkBankPress() {
-    if (user?.country === "IN") {
-      router.push("/substop/aa-consent");
-      return;
-    }
-    handleLinkBank();
-  }
-
-  async function handleLinkBank() {
-    setIsLinking(true);
-    try {
-      const { linkToken, hostedLinkUrl } = await createLinkSession();
-      await WebBrowser.openBrowserAsync(hostedLinkUrl);
-
-      // The hosted flow finishes inside the browser; poll a few times after it closes to give
-      // Plaid's webhook/session data a moment to become available.
-      let linked = false;
-      for (let attempt = 0; attempt < 6 && !linked; attempt++) {
-        const status = await pollLinkStatus(linkToken);
-        if (status.linked) {
-          linked = true;
-          break;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      }
-
-      if (!linked) {
-        Alert.alert(
-          "Still processing",
-          "We haven't confirmed the link yet. Pull to refresh in a moment to check again.",
-        );
-        return;
-      }
-
-      await handleSync();
-    } catch (err) {
-      const message = err instanceof ApiError ? err.message : "Couldn't link that account. Try again.";
-      Alert.alert("Linking failed", message);
-    } finally {
-      setIsLinking(false);
-    }
+    router.push("/substop/aa-consent");
   }
 
   async function handleSync() {
@@ -169,8 +119,8 @@ export default function SubStopScreen() {
           Securely link a bank or card (read-only) and Thrifty will scan your last 3 months of
           transactions for recurring subscriptions.
         </Text>
-        <Pressable style={styles.linkButton} onPress={handleLinkBankPress} disabled={isLinking}>
-          {isLinking ? <ActivityIndicator color={colors.textInverse} /> : <Text style={styles.linkButtonText}>Link a bank or card</Text>}
+        <Pressable style={styles.linkButton} onPress={handleLinkBankPress}>
+          <Text style={styles.linkButtonText}>Link a bank or card</Text>
         </Pressable>
       </View>
     );

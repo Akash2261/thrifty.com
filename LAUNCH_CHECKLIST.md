@@ -4,12 +4,19 @@ Ordered by what unblocks the most. Items marked **DONE** were completed in this 
 everything else needs either your accounts/credentials or a business decision.
 
 ## Phase 0 — Backend deployment (blocks everything below)
-- [ ] Deploy `apps/server` to a real host (Fly.io, Railway, Render, a VPS, etc.) with a
-      real domain and HTTPS. Right now the app only knows how to reach
+- [x] **DONE** — [Dockerfile](Dockerfile) + [.dockerignore](.dockerignore) at the repo root
+      (multi-stage build: compiles `packages/shared` then `apps/server`, runs
+      `prisma migrate deploy` before boot). **Not yet build-tested** — no Docker daemon was
+      available to actually run `docker build`; see the warning at the top of
+      [DEPLOYMENT.md](DEPLOYMENT.md). Run that build once yourself before trusting it.
+- [ ] Actually deploy it — [DEPLOYMENT.md](DEPLOYMENT.md) has concrete steps for Fly.io,
+      Railway, Render, or any Docker-capable VPS, plus the secrets to generate first. Needs
+      a real domain and HTTPS. Right now the app only knows how to reach
       `http://localhost:4000` (or `10.0.2.2:4000` on the Android emulator) — no build can
       reach a real backend until this exists.
-- [ ] Deploy Postgres + Redis for that environment (docker-compose.yml has the shapes;
-      use a managed instance in production rather than the dev containers).
+- [ ] Deploy Postgres for that environment (docker-compose.yml has the shape for local dev;
+      use a managed instance in production). Redis is optional — only needed once you set
+      up Gmail/Outlook email-sync polling.
 - [x] **DONE** — API base URL is now overridable per EAS build profile via
       `EXPO_PUBLIC_API_BASE_URL` (see `apps/mobile/eas.json` and
       `apps/mobile/src/api/client.ts`). Once you have real staging/production URLs, drop
@@ -22,12 +29,8 @@ no-ops or 503s without its credentials, per this session's established pattern. 
 these need code changes, only accounts + env vars on the deployed server.
 
 - [ ] **Anthropic** — API key for receipt/email extraction (`ANTHROPIC_API_KEY`).
-- [ ] **Stripe** — for international Premium billing (`STRIPE_SECRET_KEY`,
-      `STRIPE_WEBHOOK_SECRET`).
-- [ ] **Razorpay** — for India billing (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
+- [ ] **Razorpay** — for billing (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
       webhook secret).
-- [ ] **Plaid** — US bank linking (`PLAID_CLIENT_ID`, `PLAID_SECRET`, production access
-      requires Plaid's production approval, not just a dev key).
 - [ ] **Setu (Account Aggregator)** — India bank/UPI data; requires a signed FIU partner
       agreement before you get real credentials, not just a signup form.
 - [ ] **Google OAuth** — two separate uses, both need a verified OAuth consent screen:
@@ -54,25 +57,62 @@ these need code changes, only accounts + env vars on the deployed server.
       Play Store publish** — double-check it's correct before that first production
       submit.
 - [x] **DONE** — `eas.json` created with `development`/`preview`/`production` build
-      profiles.
+      profiles, plus a `submit.production.android` block wired for `eas submit`
+      (references `./google-play-service-account.json`, gitignored, doesn't exist yet).
+- [x] **DONE — bug fix:** `icon.png`, `android-icon-background.png`, and
+      `splash-icon.png` in `apps/mobile/assets/` were **broken** — they contained a
+      design-tool's guide overlay (safe-zone circles, crosshairs, grid lines) baked
+      directly into the image, not real icon art. `android-icon-background.png` in
+      particular is live-referenced from `app.json` as the adaptive icon's background
+      layer, so every real Android install would have shown those guide artifacts behind
+      the app icon. Rebuilt all three from the actual clean logo mark
+      (`android-icon-foreground.png`, which was fine) — verify them yourself (they're
+      real image files, not something you can typecheck) before shipping.
 - [ ] Create a **Google Play Console** developer account ($25 one-time fee).
+- [ ] Create a **Google Play Android Developer API** service account (Play Console →
+      Setup → API access → Create new service account → follow the Google Cloud link →
+      grant it access back in Play Console with at least "Release" permissions), download
+      its JSON key, save it as `apps/mobile/google-play-service-account.json` (already
+      gitignored). Without this, `eas submit` has nothing to authenticate with.
 - [ ] Generate/configure the app signing key (Play App Signing is recommended — EAS can
       generate and manage this for you via `eas build`).
+- [ ] **Android push notifications (FCM V1)** — not yet configured, and needed before
+      push notifications work in a real production build (they're currently only
+      registered client-side; nothing in this repo sets up Android's messaging
+      credentials). You need: (1) a Firebase project linked to this same
+      `com.one10.thrifty` package, (2) its `google-services.json` downloaded and placed at
+      `apps/mobile/google-services.json`, referenced via `android.googleServicesFile` in
+      `app.json` (not added yet — don't add that config line until the real file exists,
+      or EAS builds will fail looking for a missing file), and (3) a separate Firebase
+      service-account JSON (different from the Play Store one above) uploaded to EAS
+      under Android credentials → Google Service Account → FCM V1. `google-services.json`
+      itself is safe to commit (public identifiers only); the FCM service-account key is
+      not — never commit that one.
 - [ ] Run a real production build once Phase 0/1 URLs and credentials exist:
       `eas build --platform android --profile production`.
 
 ## Phase 3 — Play Console store listing & compliance
-- [ ] Store listing assets: app icon (already have real assets in `apps/mobile/assets/`),
-      feature graphic, phone/tablet screenshots, short + full description.
+- [x] **DONE** — App title, short/full description, category, and a draft Data Safety
+      answer table are in [PLAY_STORE_LISTING.md](PLAY_STORE_LISTING.md), ready to paste
+      into the Play Console forms (review before submitting — it's a draft, not verified
+      against the live form's exact wording).
+- [x] **DONE** — Feature graphic (1024×500) and a 512×512 hi-res icon are generated at
+      `store-assets/feature-graphic.png` and `store-assets/play-store-icon-512.png`.
+- [ ] Phone screenshots still needed (min 2, Play requires them) — **not producible in
+      this sandbox** since there's no live backend to sign in against. Verified the web
+      preview renders correctly though (`npm run web --workspace=@thrifty/mobile`, resize
+      the browser to ~412×915, screenshot sign-in/sign-up/phone-sign-in). Once the backend
+      is deployed and you can actually sign in, either reuse that same web-preview
+      approach for the authenticated screens (Home, Warranty, SubStop, Settings) or pull
+      them straight from a real device/emulator via `eas build --profile development`.
 - [ ] **Privacy Policy URL** — draft is at [PRIVACY_POLICY.md](PRIVACY_POLICY.md) in this
       repo. **Needs real legal review** (India DPDP Act, financial-data handling) before
       publishing; then host it somewhere with a stable URL for the Play Console field.
-- [ ] **Data Safety form** — can be filled out directly from what
-      [PRIVACY_POLICY.md](PRIVACY_POLICY.md) already documents (data types collected:
-      account info, financial info via bank-linking, photos, messages/email content
-      scanned, device identifiers for push).
-- [ ] **Financial Services declaration** — Thrifty links bank accounts (Plaid/AA) and
-      processes payments (Stripe/Razorpay), which very likely puts it in Play's
+- [ ] **Data Safety form** — draft answers in [PLAY_STORE_LISTING.md](PLAY_STORE_LISTING.md);
+      still needs you to actually fill out the real Play Console form and keep it in sync
+      if data practices change.
+- [ ] **Financial Services declaration** — Thrifty links bank accounts (Account
+      Aggregator) and processes payments (Razorpay), which very likely puts it in Play's
       "Financial Services" and "Sensitive Data" app categories, triggering extra
       declarations/review. Read Play's current Financial Services policy before
       submitting; this may add review time.
@@ -125,7 +165,11 @@ these need code changes, only accounts + env vars on the deployed server.
 ---
 
 ## What's genuinely blocking you right now
-In priority order: **(1)** a deployed backend with a real URL, **(2)** a Play Console
-developer account, **(3)** legal review of [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
-Everything else in Phase 1 (the third-party credentials) can be obtained in parallel and
-added to the deployed backend's env vars without further code changes.
+In priority order: **(1)** actually running `docker build` once to confirm the Dockerfile
+works, then deploying it somewhere per [DEPLOYMENT.md](DEPLOYMENT.md), **(2)** a Play
+Console developer account + its API service account key, **(3)** a Firebase project +
+`google-services.json` for Android push, **(4)** legal review of
+[PRIVACY_POLICY.md](PRIVACY_POLICY.md), **(5)** an `eas login` + real production build
+(needs your Expo account — not something this session can do for you). Everything else in
+Phase 1 (the third-party credentials) can be obtained in parallel and added to the
+deployed backend's env vars without further code changes.

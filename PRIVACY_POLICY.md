@@ -9,9 +9,7 @@
 >   manager language, data principal rights, cross-border transfer rules, breach
 >   notification timelines)
 > - Financial-data handling rules tied to bank/UPI access (RBI Account Aggregator
->   framework consent language) and to Plaid (US)
-> - Any state/country-specific requirements for the jurisdictions you actually launch in
->   (e.g. US state privacy laws if you have California/Colorado/etc. users)
+>   framework consent language)
 > - Retention periods — this draft describes current behavior, not necessarily the
 >   retention periods you want to legally commit to
 >
@@ -25,8 +23,9 @@
 ## 1. Who we are
 
 Thrifty ("we", "us", "the App") helps you track warranties, return windows, and
-subscriptions, and helps you cancel subscriptions you no longer use. This policy
-describes what data the App collects, why, and how you can control or delete it.
+subscriptions, and helps you cancel subscriptions you no longer use. Thrifty is offered
+to users in India only. This policy describes what data the App collects, why, and how
+you can control or delete it.
 
 [COMPANY LEGAL NAME, ADDRESS, CONTACT EMAIL — FILL IN]
 
@@ -37,8 +36,6 @@ describes what data the App collects, why, and how you can control or delete it.
 - Phone number, verified via one-time passcode (SMS), **or**
 - Google or Apple sign-in (we receive your name/email from Google/Apple; we never see
   your Google/Apple password)
-- Country (used to determine which features apply — e.g. India's Account Aggregator vs.
-  US's Plaid for bank data)
 
 ### 2.2 Receipts and warranty items
 - Photos of receipts you capture or upload
@@ -54,17 +51,18 @@ describes what data the App collects, why, and how you can control or delete it.
   other WhatsApp conversation, contact list, or message.
 
 ### 2.3 Bank and card transaction data (optional, for subscription detection)
-- If you link a bank account or card (via Plaid in the US, or the RBI-regulated Account
-  Aggregator framework in India), we receive **read-only transaction data** — merchant
-  name, amount, date — used to detect recurring subscription charges.
+- If you link a bank account or card via India's RBI-regulated Account Aggregator
+  framework, we receive **read-only transaction data** — merchant name, amount, date —
+  used to detect recurring subscription charges.
 - We **never** receive or store your online banking username, password, or card PIN.
-  That authentication happens entirely with your bank or the AA provider, not with us.
+  That authentication happens entirely with your bank or the Account Aggregator, not
+  with us.
 - You can revoke this access (revoke consent / unlink) at any time.
 
 ### 2.4 Payments
 - If you upgrade to Premium or confirm a savings-based cancellation charge, payment is
-  processed by Stripe (international) or Razorpay (India). We do not store your card
-  number — the payment processor handles that under its own PCI-compliant systems.
+  processed by Razorpay. We do not store your card number — Razorpay handles that under
+  its own PCI-compliant systems.
 
 ### 2.5 Device and usage data
 - A push-notification token, so we can notify you about upcoming return-window or
@@ -88,9 +86,9 @@ bugs. We do not sell your personal data.
 ## 4. Third parties we share data with
 - **Anthropic (Claude)** — receipt images/text are sent to Claude's API to extract
   structured item data. Not used to train Anthropic's models under our commercial terms.
-- **Plaid** / **Setu (Account Aggregator TSP)** — bank-linking and transaction data, as
-  described above.
-- **Stripe** / **Razorpay** — payment processing.
+- **Setu (Account Aggregator TSP)** — bank-linking and transaction data, as described
+  above.
+- **Razorpay** — payment processing.
 - **Twilio** — SMS delivery for phone sign-in codes.
 - **Google / Microsoft** — OAuth and, if connected, email scanning as described above.
 - **Meta (WhatsApp Business Platform)** — if you message our WhatsApp number.

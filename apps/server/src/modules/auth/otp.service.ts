@@ -3,7 +3,6 @@ import { prisma } from "../../db/prisma";
 import { AppError } from "../../lib/errors";
 import { twilioSmsProvider } from "../../lib/sms";
 import { hashPassword, verifyPassword } from "../../lib/password";
-import type { Country } from "@thrifty/shared";
 
 const OTP_TTL_MINUTES = 5;
 const OTP_RESEND_COOLDOWN_SECONDS = 60;
@@ -38,7 +37,7 @@ export async function sendOtp(phoneNumber: string) {
   });
 }
 
-export async function verifyOtpAndSignIn(phoneNumber: string, code: string, country: Country) {
+export async function verifyOtpAndSignIn(phoneNumber: string, code: string) {
   const otp = await prisma.otpCode.findFirst({
     where: { phoneNumber, consumedAt: null, expiresAt: { gte: new Date() } },
     orderBy: { createdAt: "desc" },
@@ -60,7 +59,7 @@ export async function verifyOtpAndSignIn(phoneNumber: string, code: string, coun
 
   const user = await prisma.user.upsert({
     where: { phoneNumber },
-    create: { phoneNumber, country, authProvider: "phone" },
+    create: { phoneNumber, authProvider: "phone" },
     update: {},
   });
 

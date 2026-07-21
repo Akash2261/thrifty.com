@@ -38,9 +38,7 @@ export async function getDataUsage(userId: string): Promise<DataUsageItem[]> {
 
   if (linkedBankAccounts.length > 0) {
     items.push({
-      category: linkedBankAccounts.some((a) => a.provider === "account_aggregator")
-        ? "Bank transactions (via Account Aggregator)"
-        : "Bank/card transactions (via Plaid)",
+      category: "Bank transactions (via Account Aggregator)",
       whatWeRead: "Transaction amounts, dates, and merchant names — read-only, never your login credentials.",
       why: "To detect recurring subscription charges and calculate your total monthly spend.",
     });

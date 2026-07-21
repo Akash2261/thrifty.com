@@ -29,7 +29,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const user = await createUser(parsed.data.email, parsed.data.password, parsed.data.country);
+      const user = await createUser(parsed.data.email, parsed.data.password);
       const tokens = await issueTokens(reply, user);
       return reply.code(201).send({ user: toPublicUser(user), ...tokens });
     } catch (err) {
@@ -100,7 +100,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       return reply.code(400).send({ error: parsed.error.flatten().fieldErrors });
     }
     try {
-      const user = await verifyOtpAndSignIn(parsed.data.phoneNumber, parsed.data.code, parsed.data.country);
+      const user = await verifyOtpAndSignIn(parsed.data.phoneNumber, parsed.data.code);
       const tokens = await issueTokens(reply, user);
       return reply.send({ user: toPublicUser(user), ...tokens });
     } catch (err) {
@@ -115,7 +115,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       return reply.code(400).send({ error: parsed.error.flatten().fieldErrors });
     }
     try {
-      const user = await socialSignIn("google", parsed.data.idToken, parsed.data.country);
+      const user = await socialSignIn("google", parsed.data.idToken);
       const tokens = await issueTokens(reply, user);
       return reply.send({ user: toPublicUser(user), ...tokens });
     } catch (err) {
@@ -130,7 +130,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       return reply.code(400).send({ error: parsed.error.flatten().fieldErrors });
     }
     try {
-      const user = await socialSignIn("apple", parsed.data.idToken, parsed.data.country);
+      const user = await socialSignIn("apple", parsed.data.idToken);
       const tokens = await issueTokens(reply, user);
       return reply.send({ user: toPublicUser(user), ...tokens });
     } catch (err) {

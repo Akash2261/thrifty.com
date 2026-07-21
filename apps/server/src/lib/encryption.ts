@@ -17,7 +17,7 @@ function getKey(): Buffer {
   return scryptSync(secret, "thrifty-access-token", 32);
 }
 
-// Encrypts access tokens (Plaid/AA bank tokens, Gmail/Outlook OAuth tokens) before they're
+// Encrypts access tokens (Account Aggregator bank tokens, Gmail/Outlook OAuth tokens) before they're
 // stored — these grant read access to a user's bank or email data, so they're treated like the
 // credential they effectively are.
 export function encryptSecret(plaintext: string): string {

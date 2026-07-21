@@ -1,10 +1,9 @@
 import { z } from "zod";
-import { CountrySchema, UserSchema } from "./user";
+import { UserSchema } from "./user";
 
 export const SignupRequestSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  country: CountrySchema,
 });
 export type SignupRequest = z.infer<typeof SignupRequestSchema>;
 
@@ -43,12 +42,10 @@ export type SendOtpRequest = z.infer<typeof SendOtpRequestSchema>;
 export const VerifyOtpRequestSchema = z.object({
   phoneNumber: z.string().regex(PHONE_NUMBER_REGEX),
   code: z.string().length(6),
-  country: CountrySchema,
 });
 export type VerifyOtpRequest = z.infer<typeof VerifyOtpRequestSchema>;
 
 export const SocialSignInRequestSchema = z.object({
   idToken: z.string().min(1),
-  country: CountrySchema,
 });
 export type SocialSignInRequest = z.infer<typeof SocialSignInRequestSchema>;

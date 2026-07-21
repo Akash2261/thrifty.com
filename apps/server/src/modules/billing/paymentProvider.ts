@@ -1,7 +1,3 @@
-import type { Country } from "@thrifty/shared";
-import { stripeProvider } from "./stripeProvider";
-import { razorpayProvider } from "./razorpayProvider";
-
 export interface CheckoutSessionResult {
   checkoutUrl: string;
 }
@@ -18,8 +14,4 @@ export interface PaymentProvider {
     currency: string;
     description: string;
   }): Promise<CheckoutSessionResult>;
-}
-
-export function getPaymentProvider(country: Country): PaymentProvider {
-  return country === "US" ? stripeProvider : razorpayProvider;
 }

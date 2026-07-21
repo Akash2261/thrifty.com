@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
     "test": "vitest run"
   },
@@ -28,9 +29,7 @@
     "fastify-plugin": "^4.5.1",
     "node-cron": "^3.0.3",
     "expo-server-sdk": "^3.13.0",
-    "plaid": "^30.0.0",
     "postmark": "^4.0.5",
-    "stripe": "^17.0.0",
     "razorpay": "^2.9.5",
     "twilio": "^5.3.0",
     "google-auth-library": "^9.14.1",

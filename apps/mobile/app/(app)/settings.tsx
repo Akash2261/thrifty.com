@@ -73,10 +73,6 @@ export default function SettingsScreen() {
         <Text style={styles.value}>{user?.email ?? user?.phoneNumber}</Text>
       </View>
       <View style={styles.section}>
-        <Text style={styles.label}>Country</Text>
-        <Text style={styles.value}>{user?.country}</Text>
-      </View>
-      <View style={styles.section}>
         <Text style={styles.label}>Plan</Text>
         <Text style={styles.value}>{user?.tier === "premium" ? "Premium" : "Free (5 items)"}</Text>
       </View>

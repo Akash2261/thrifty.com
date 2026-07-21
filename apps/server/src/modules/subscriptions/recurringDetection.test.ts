@@ -16,9 +16,9 @@ describe("normalizeMerchant", () => {
 describe("detectRecurringCharges", () => {
   it("flags a monthly charge with a consistent amount", () => {
     const transactions = [
-      { merchantRaw: "NETFLIX.COM", amount: 15.99, currency: "USD", date: daysAgo(90) },
-      { merchantRaw: "NETFLIX.COM", amount: 15.99, currency: "USD", date: daysAgo(60) },
-      { merchantRaw: "NETFLIX.COM", amount: 15.99, currency: "USD", date: daysAgo(30) },
+      { merchantRaw: "NETFLIX.COM", amount: 199, currency: "INR", date: daysAgo(90) },
+      { merchantRaw: "NETFLIX.COM", amount: 199, currency: "INR", date: daysAgo(60) },
+      { merchantRaw: "NETFLIX.COM", amount: 199, currency: "INR", date: daysAgo(30) },
     ];
 
     const result = detectRecurringCharges(transactions);
@@ -26,40 +26,40 @@ describe("detectRecurringCharges", () => {
     expect(result[0]).toMatchObject({
       merchantNormalized: "netflix com",
       cadence: "monthly",
-      avgAmount: 15.99,
+      avgAmount: 199,
     });
   });
 
   it("does not flag a single one-off purchase", () => {
     const transactions = [
-      { merchantRaw: "Best Buy", amount: 349.99, currency: "USD", date: daysAgo(10) },
+      { merchantRaw: "Croma", amount: 34999, currency: "INR", date: daysAgo(10) },
     ];
     expect(detectRecurringCharges(transactions)).toHaveLength(0);
   });
 
   it("does not flag irregular, non-cadenced charges", () => {
     const transactions = [
-      { merchantRaw: "Corner Store", amount: 12.5, currency: "USD", date: daysAgo(88) },
-      { merchantRaw: "Corner Store", amount: 8.2, currency: "USD", date: daysAgo(51) },
-      { merchantRaw: "Corner Store", amount: 40.0, currency: "USD", date: daysAgo(3) },
+      { merchantRaw: "Corner Store", amount: 125, currency: "INR", date: daysAgo(88) },
+      { merchantRaw: "Corner Store", amount: 82, currency: "INR", date: daysAgo(51) },
+      { merchantRaw: "Corner Store", amount: 400, currency: "INR", date: daysAgo(3) },
     ];
     expect(detectRecurringCharges(transactions)).toHaveLength(0);
   });
 
   it("does not flag same-cadence charges with wildly different amounts", () => {
     const transactions = [
-      { merchantRaw: "Amazon", amount: 10, currency: "USD", date: daysAgo(90) },
-      { merchantRaw: "Amazon", amount: 85, currency: "USD", date: daysAgo(60) },
-      { merchantRaw: "Amazon", amount: 22, currency: "USD", date: daysAgo(30) },
+      { merchantRaw: "Amazon", amount: 100, currency: "INR", date: daysAgo(90) },
+      { merchantRaw: "Amazon", amount: 850, currency: "INR", date: daysAgo(60) },
+      { merchantRaw: "Amazon", amount: 220, currency: "INR", date: daysAgo(30) },
     ];
     expect(detectRecurringCharges(transactions)).toHaveLength(0);
   });
 
   it("detects weekly cadence", () => {
     const transactions = [
-      { merchantRaw: "Spotify", amount: 4.99, currency: "USD", date: daysAgo(21) },
-      { merchantRaw: "Spotify", amount: 4.99, currency: "USD", date: daysAgo(14) },
-      { merchantRaw: "Spotify", amount: 4.99, currency: "USD", date: daysAgo(7) },
+      { merchantRaw: "Spotify", amount: 119, currency: "INR", date: daysAgo(21) },
+      { merchantRaw: "Spotify", amount: 119, currency: "INR", date: daysAgo(14) },
+      { merchantRaw: "Spotify", amount: 119, currency: "INR", date: daysAgo(7) },
     ];
     const result = detectRecurringCharges(transactions);
     expect(result).toHaveLength(1);

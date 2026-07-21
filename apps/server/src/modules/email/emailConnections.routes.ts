@@ -38,7 +38,7 @@ export default async function emailConnectionsRoutes(fastify: FastifyInstance) {
   // Not authenticated with a user JWT — the provider (Google/Microsoft/Yahoo) redirects the
   // user's browser here directly after consent. The `state` param (a PendingEmailOAuth id) is
   // what ties this callback back to a specific user, the same way PendingBankLink's linkToken
-  // does for Plaid. Always redirects into the app via the thrifty:// scheme rather than
+  // does for the Account Aggregator flow. Always redirects into the app via the thrifty:// scheme rather than
   // returning JSON, since this request comes from the OS browser, not the mobile app's API client.
   fastify.get("/email-connections/callback/:provider", async (request, reply) => {
     const providerParsed = EmailProviderSchema.safeParse((request.params as any).provider);

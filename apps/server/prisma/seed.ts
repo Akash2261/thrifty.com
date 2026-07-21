@@ -36,25 +36,39 @@ const KNOWN_SERVICES: Array<{
     instructions: "Sign in, then choose Cancel Premium under your subscription.",
   },
   {
-    merchantPattern: "disney plus",
-    displayName: "Disney+",
+    merchantPattern: "disney plus hotstar",
+    displayName: "Disney+ Hotstar",
     method: "self_service_url",
-    selfServiceUrl: "https://www.disneyplus.com/account",
-    instructions: "Sign in, then go to Subscription and select Cancel Subscription.",
-  },
-  {
-    merchantPattern: "hulu",
-    displayName: "Hulu",
-    method: "self_service_url",
-    selfServiceUrl: "https://www.hulu.com/account",
-    instructions: "Sign in, then go to Your Subscription and select Cancel.",
+    selfServiceUrl: "https://www.hotstar.com/in/subscribe/manage",
+    instructions: "Sign in, then go to Manage Subscription and select Cancel.",
   },
   {
     merchantPattern: "amazon prime",
     displayName: "Amazon Prime",
     method: "self_service_url",
-    selfServiceUrl: "https://www.amazon.com/prime",
+    selfServiceUrl: "https://www.amazon.in/prime",
     instructions: "Sign in, then go to Manage Membership > End Membership.",
+  },
+  {
+    merchantPattern: "zee5",
+    displayName: "ZEE5",
+    method: "self_service_url",
+    selfServiceUrl: "https://www.zee5.com/subscription",
+    instructions: "Sign in, then go to My Subscription and select Cancel.",
+  },
+  {
+    merchantPattern: "sonyliv",
+    displayName: "SonyLIV",
+    method: "self_service_url",
+    selfServiceUrl: "https://www.sonyliv.com/subscribe",
+    instructions: "Sign in, then go to Manage Subscription to cancel.",
+  },
+  {
+    merchantPattern: "jiosaavn",
+    displayName: "JioSaavn",
+    method: "self_service_url",
+    selfServiceUrl: "https://www.jiosaavn.com/subscribe",
+    instructions: "Sign in, then go to Manage Plan and select Cancel Subscription.",
   },
   {
     merchantPattern: "youtube premium",
@@ -70,13 +84,6 @@ const KNOWN_SERVICES: Array<{
     selfServiceUrl: "https://apps.apple.com/account/subscriptions",
     instructions:
       "Apple bills Apple Music/TV+/iCloud+ through your Apple ID — manage or cancel here.",
-  },
-  {
-    merchantPattern: "max com",
-    displayName: "Max (HBO)",
-    method: "self_service_url",
-    selfServiceUrl: "https://www.max.com/account",
-    instructions: "Sign in, then go to Billing and select Cancel Subscription.",
   },
   {
     merchantPattern: "audible",
@@ -110,7 +117,7 @@ const KNOWN_SERVICES: Array<{
     merchantPattern: "playstation",
     displayName: "PlayStation Plus",
     method: "self_service_url",
-    selfServiceUrl: "https://www.playstation.com/en-us/subscriptions/",
+    selfServiceUrl: "https://www.playstation.com/en-in/subscriptions/",
     instructions: "Sign in with your PSN account, then manage or cancel PS Plus here.",
   },
   {
@@ -128,7 +135,7 @@ const KNOWN_SERVICES: Array<{
 // real rows here only once you've verified a manufacturer's actual service-center contact, e.g.:
 //
 //   { merchantPattern: "example brand", displayName: "Example Brand Support",
-//     contactMethod: "phone", contactValue: "+1-800-555-0100",
+//     contactMethod: "phone", contactValue: "1800-123-4567",
 //     instructions: "Verified via their support page on 2026-01-01: ..." }
 const SERVICE_CENTER_CONTACTS: Array<{
   merchantPattern: string;

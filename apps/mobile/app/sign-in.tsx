@@ -3,23 +3,16 @@ import * as Google from "expo-auth-session/providers/google";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import type { Country } from "@thrifty/shared";
 import { useSession } from "../src/ctx/auth";
 import { ApiError } from "../src/api/client";
 import { track } from "../src/lib/analytics";
 import { colors, radii, spacing } from "../src/theme/colors";
-
-const COUNTRIES: { label: string; value: Country }[] = [
-  { label: "India", value: "IN" },
-  { label: "United States", value: "US" },
-];
 
 export default function SignInScreen() {
   const router = useRouter();
   const { signIn, signInWithGoogle, signInWithApple } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [country, setCountry] = useState<Country>("IN");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAppleAvailable, setIsAppleAvailable] = useState(false);
 
@@ -47,8 +40,8 @@ export default function SignInScreen() {
 
   useEffect(() => {
     if (googleResponse?.type === "success" && googleResponse.params.id_token) {
-      signInWithGoogle(googleResponse.params.id_token, country)
-        .then(() => track("signup_completed", { method: "google", country }))
+      signInWithGoogle(googleResponse.params.id_token)
+        .then(() => track("signup_completed", { method: "google" }))
         .catch((err) => {
           const message = err instanceof ApiError ? err.message : "Couldn't sign in with Google.";
           Alert.alert("Google sign-in failed", message);
@@ -79,8 +72,8 @@ export default function SignInScreen() {
       if (!credential.identityToken) {
         throw new Error("Apple didn't return an identity token");
       }
-      await signInWithApple(credential.identityToken, country);
-      track("signup_completed", { method: "apple", country });
+      await signInWithApple(credential.identityToken);
+      track("signup_completed", { method: "apple" });
     } catch (err: any) {
       if (err?.code === "ERR_REQUEST_CANCELED") return;
       const message = err instanceof ApiError ? err.message : "Couldn't sign in with Apple.";
@@ -92,20 +85,6 @@ export default function SignInScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Thrifty</Text>
       <Text style={styles.subtitle}>Track warranties. Stop paying for subscriptions you forgot.</Text>
-
-      <View style={styles.countryRow}>
-        {COUNTRIES.map((c) => (
-          <Pressable
-            key={c.value}
-            onPress={() => setCountry(c.value)}
-            style={[styles.countryChip, country === c.value && styles.countryChipSelected]}
-          >
-            <Text style={[styles.countryChipText, country === c.value && styles.countryChipTextSelected]}>
-              {c.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
 
       <TextInput
         style={styles.input}
@@ -158,18 +137,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: spacing.xxl, gap: spacing.md, backgroundColor: colors.background },
   title: { fontSize: 34, fontWeight: "700", textAlign: "center", color: colors.textPrimary, letterSpacing: -0.5 },
   subtitle: { fontSize: 15, color: colors.textSecondary, textAlign: "center", marginBottom: spacing.sm, lineHeight: 21 },
-  countryRow: { flexDirection: "row", gap: spacing.sm, justifyContent: "center", marginBottom: spacing.sm },
-  countryChip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  countryChipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
-  countryChipText: { color: colors.textPrimary, fontWeight: "500" },
-  countryChipTextSelected: { color: colors.textInverse },
   input: {
     borderWidth: 1,
     borderColor: colors.border,

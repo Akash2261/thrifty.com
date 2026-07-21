@@ -20,8 +20,6 @@ const KNOWN_SUBSCRIPTION_SENDERS: { pattern: RegExp; displayName: string; cadenc
   { pattern: /@spotify\.com/i, displayName: "Spotify", cadence: "monthly" },
   { pattern: /@hotstar\.com/i, displayName: "Disney+ Hotstar", cadence: "monthly" },
   { pattern: /@(mail\.)?youtube\.com/i, displayName: "YouTube Premium", cadence: "monthly" },
-  { pattern: /@disneyplus\.com/i, displayName: "Disney+", cadence: "monthly" },
-  { pattern: /@(mail\.)?hbomax\.com|@max\.com/i, displayName: "Max (HBO)", cadence: "monthly" },
   { pattern: /@(email\.)?zee5\.com/i, displayName: "ZEE5", cadence: "monthly" },
   { pattern: /@sonyliv\.com/i, displayName: "SonyLIV", cadence: "monthly" },
   { pattern: /@jiosaavn\.com/i, displayName: "JioSaavn", cadence: "monthly" },
@@ -45,21 +43,14 @@ const CADENCE_PHRASES: { pattern: RegExp; cadence: SubscriptionCadence }[] = [
   { pattern: /\bweekly\s+(?:subscription|plan|membership)\b/i, cadence: "weekly" },
 ];
 
-// Symbol-based patterns first (unambiguous), then ISO-code-prefixed amounts — common in Indian
-// and international billing emails that spell out "INR 999.00" / "USD 15.99" instead of using a
-// currency symbol.
+// Symbol-based pattern first (unambiguous), then the ISO-code-prefixed form — some billing
+// emails spell out "INR 999.00" instead of using the ₹ symbol.
 function extractAmount(text: string): { amount: number; currency: string } | null {
   const inr = text.match(/(?:₹|Rs\.?)\s?([\d,]+(?:\.\d{1,2})?)/);
   if (inr) return { amount: Number(inr[1].replace(/,/g, "")), currency: "INR" };
-  const usd = text.match(/\$\s?([\d,]+(?:\.\d{1,2})?)/);
-  if (usd) return { amount: Number(usd[1].replace(/,/g, "")), currency: "USD" };
-  const eur = text.match(/€\s?([\d,]+(?:\.\d{1,2})?)/);
-  if (eur) return { amount: Number(eur[1].replace(/,/g, "")), currency: "EUR" };
-  const gbp = text.match(/£\s?([\d,]+(?:\.\d{1,2})?)/);
-  if (gbp) return { amount: Number(gbp[1].replace(/,/g, "")), currency: "GBP" };
 
-  const isoMatch = text.match(/\b(INR|USD|EUR|GBP)\s?([\d,]+(?:\.\d{1,2})?)/i);
-  if (isoMatch) return { amount: Number(isoMatch[2].replace(/,/g, "")), currency: isoMatch[1].toUpperCase() };
+  const isoMatch = text.match(/\bINR\s?([\d,]+(?:\.\d{1,2})?)/i);
+  if (isoMatch) return { amount: Number(isoMatch[1].replace(/,/g, "")), currency: "INR" };
 
   return null;
 }

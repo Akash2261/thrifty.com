@@ -1,6 +1,5 @@
 import { prisma } from "../../db/prisma";
 import { hashPassword, verifyPassword } from "../../lib/password";
-import type { Country } from "@thrifty/shared";
 
 export class AuthError extends Error {
   constructor(message: string) {
@@ -9,7 +8,7 @@ export class AuthError extends Error {
   }
 }
 
-export async function createUser(email: string, password: string, country: Country) {
+export async function createUser(email: string, password: string) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new AuthError("An account with this email already exists");
@@ -17,7 +16,7 @@ export async function createUser(email: string, password: string, country: Count
 
   const passwordHash = await hashPassword(password);
   return prisma.user.create({
-    data: { email, passwordHash, country },
+    data: { email, passwordHash },
   });
 }
 

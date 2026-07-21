@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
-import type { Country, User } from "@thrifty/shared";
+import type { User } from "@thrifty/shared";
 import {
   ApiError,
   fetchMe,
@@ -21,11 +21,11 @@ interface SessionContextValue {
   user: User | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, country: Country) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
   sendOtp: (phoneNumber: string) => Promise<void>;
-  verifyOtp: (phoneNumber: string, code: string, country: Country) => Promise<void>;
-  signInWithGoogle: (idToken: string, country: Country) => Promise<void>;
-  signInWithApple: (idToken: string, country: Country) => Promise<void>;
+  verifyOtp: (phoneNumber: string, code: string) => Promise<void>;
+  signInWithGoogle: (idToken: string) => Promise<void>;
+  signInWithApple: (idToken: string) => Promise<void>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<User>;
@@ -88,26 +88,26 @@ export function SessionProvider({ children }: PropsWithChildren) {
         await storeTokens(res.accessToken, res.refreshToken);
         setUser(res.user);
       },
-      async signUp(email, password, country) {
-        const res = await signup({ email, password, country });
+      async signUp(email, password) {
+        const res = await signup({ email, password });
         await storeTokens(res.accessToken, res.refreshToken);
         setUser(res.user);
       },
       async sendOtp(phoneNumber) {
         await apiSendOtp({ phoneNumber });
       },
-      async verifyOtp(phoneNumber, code, country) {
-        const res = await apiVerifyOtp({ phoneNumber, code, country });
+      async verifyOtp(phoneNumber, code) {
+        const res = await apiVerifyOtp({ phoneNumber, code });
         await storeTokens(res.accessToken, res.refreshToken);
         setUser(res.user);
       },
-      async signInWithGoogle(idToken, country) {
-        const res = await apiSignInWithGoogle({ idToken, country });
+      async signInWithGoogle(idToken) {
+        const res = await apiSignInWithGoogle({ idToken });
         await storeTokens(res.accessToken, res.refreshToken);
         setUser(res.user);
       },
-      async signInWithApple(idToken, country) {
-        const res = await apiSignInWithApple({ idToken, country });
+      async signInWithApple(idToken) {
+        const res = await apiSignInWithApple({ idToken });
         await storeTokens(res.accessToken, res.refreshToken);
         setUser(res.user);
       },

@@ -9,7 +9,6 @@ export function toPublicUser(user: PrismaUser): User {
     email: user.email,
     phoneNumber: user.phoneNumber,
     authProvider: user.authProvider,
-    country: user.country,
     tier: user.tier,
     inboundEmail: `${user.inboundEmailToken}@${INBOUND_EMAIL_DOMAIN}`,
     // Parses whatever subset is stored and fills in defaults for the rest, so adding a new

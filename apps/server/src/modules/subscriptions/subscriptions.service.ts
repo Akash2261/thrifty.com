@@ -1,7 +1,7 @@
 import { prisma } from "../../db/prisma";
 import { AppError } from "../../lib/errors";
 import { detectRecurringCharges } from "./recurringDetection";
-import { getPaymentProvider } from "../billing/paymentProvider";
+import { razorpayProvider } from "../billing/razorpayProvider";
 import type { SubscriptionCadence } from "@thrifty/shared";
 
 // The cut Thrifty takes of a year's savings when a user is on the revenue-share pricing model
@@ -108,12 +108,11 @@ export async function confirmCancelled(userId: string, subscriptionId: string) {
       estimatedAnnualSavings,
       chargeAmount,
       currency: sub.currency,
-      provider: user.country === "US" ? "stripe" : "razorpay",
+      provider: "razorpay",
     },
   });
 
-  const provider = getPaymentProvider(user.country);
-  const { checkoutUrl } = await provider.createOneTimeCharge({
+  const { checkoutUrl } = await razorpayProvider.createOneTimeCharge({
     reference: charge.id,
     userEmail: user.email,
     amount: chargeAmount,

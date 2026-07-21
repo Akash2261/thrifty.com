@@ -2,7 +2,7 @@ import { OAuth2Client } from "google-auth-library";
 import appleSignin from "apple-signin-auth";
 import { prisma } from "../../db/prisma";
 import { AppError } from "../../lib/errors";
-import type { AuthProvider, Country } from "@thrifty/shared";
+import type { AuthProvider } from "@thrifty/shared";
 
 async function verifyGoogleIdToken(idToken: string): Promise<{ email: string }> {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -47,7 +47,7 @@ async function verifyAppleIdToken(idToken: string): Promise<{ email: string }> {
   return { email: payload.email };
 }
 
-export async function socialSignIn(provider: AuthProvider, idToken: string, country: Country) {
+export async function socialSignIn(provider: AuthProvider, idToken: string) {
   const { email } =
     provider === "google" ? await verifyGoogleIdToken(idToken) : await verifyAppleIdToken(idToken);
 
@@ -57,6 +57,6 @@ export async function socialSignIn(provider: AuthProvider, idToken: string, coun
   }
 
   return prisma.user.create({
-    data: { email, country, authProvider: provider },
+    data: { email, authProvider: provider },
   });
 }

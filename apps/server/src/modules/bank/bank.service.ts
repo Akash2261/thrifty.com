@@ -1,38 +1,28 @@
 import { prisma } from "../../db/prisma";
 import { AppError } from "../../lib/errors";
 import { encryptSecret, decryptSecret } from "../../lib/encryption";
-import { getBankProvider } from "./bankProvider";
+import { accountAggregatorProvider as provider } from "./accountAggregatorProvider";
 import { detectAndUpsertSubscriptions } from "../subscriptions/subscriptions.service";
 import { normalizeMerchant } from "../subscriptions/recurringDetection";
 
 const TRANSACTION_LOOKBACK_DAYS = 90;
 
 export async function createLinkSession(userId: string) {
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  const provider = getBankProvider(user.country);
   const session = await provider.createLinkSession(userId);
 
   await prisma.pendingBankLink.create({
-    data: {
-      userId,
-      linkToken: session.linkToken,
-      provider: user.country === "US" ? "plaid" : "account_aggregator",
-    },
+    data: { userId, linkToken: session.linkToken },
   });
 
   return session;
 }
 
 async function finishLink(pendingLinkId: string, userId: string, publicToken: string, fallbackInstitutionName?: string) {
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  const provider = getBankProvider(user.country);
-
   const exchanged = await provider.exchangePublicToken(publicToken);
 
   const account = await prisma.linkedBankAccount.create({
     data: {
       userId,
-      provider: user.country === "US" ? "plaid" : "account_aggregator",
       providerItemId: exchanged.providerItemId,
       encryptedAccessToken: encryptSecret(exchanged.accessToken),
       institutionName: exchanged.institutionName ?? fallbackInstitutionName ?? null,
@@ -54,7 +44,6 @@ export async function pollLinkSession(userId: string, linkToken: string) {
     return { linked: false };
   }
 
-  const provider = getBankProvider((await prisma.user.findUniqueOrThrow({ where: { id: userId } })).country);
   const result = await provider.pollLinkSession(linkToken);
   if (!result.finished || !result.publicToken) {
     return { linked: false };
@@ -62,21 +51,6 @@ export async function pollLinkSession(userId: string, linkToken: string) {
 
   const account = await finishLink(pending.id, userId, result.publicToken, result.institutionName);
   return { linked: true, institutionName: account.institutionName };
-}
-
-export async function handlePlaidWebhook(payload: any) {
-  if (payload?.webhook_code !== "SESSION_FINISHED") {
-    return;
-  }
-
-  const linkToken = payload.link_token;
-  const publicToken = payload.public_tokens?.[0];
-  if (!linkToken || !publicToken) return;
-
-  const pending = await prisma.pendingBankLink.findFirst({ where: { linkToken } });
-  if (!pending) return;
-
-  await finishLink(pending.id, pending.userId, publicToken);
 }
 
 export async function listLinkedAccounts(userId: string) {
@@ -89,8 +63,6 @@ export async function syncAccount(userId: string, linkedAccountId: string) {
     throw new AppError("Linked account not found", 404);
   }
 
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  const provider = getBankProvider(user.country);
   const accessToken = decryptSecret(account.encryptedAccessToken);
   const sinceDate = new Date(Date.now() - TRANSACTION_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
 

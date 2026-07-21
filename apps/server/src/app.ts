@@ -32,7 +32,7 @@ export function buildApp() {
     limits: { fileSize: 15 * 1024 * 1024 },
   });
 
-  // Payment webhook signatures (Stripe/Razorpay) are computed over the exact raw request bytes,
+  // Payment webhook signatures (Razorpay) are computed over the exact raw request bytes,
   // so the JSON parser stashes the buffer before parsing rather than only exposing the parsed body.
   app.addContentTypeParser("application/json", { parseAs: "buffer" }, (request, body, done) => {
     request.rawBody = body as Buffer;

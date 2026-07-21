@@ -7,6 +7,13 @@ One app, two money-saving modules:
 - **SubStop** — read-only bank/card scan that surfaces recurring subscriptions and monthly
   "leakage."
 
+**Scope: India-only.** Thrifty was originally built US+India-aware (Plaid for US bank-linking,
+Stripe for US billing, a `Country` field selected at signup). That's since been removed — bank data
+now goes exclusively through India's RBI-regulated Account Aggregator framework, billing is
+Razorpay-only, and there's no country selection anywhere in the app. The milestone write-ups below
+were written during that earlier build and occasionally still narrate the US-aware version as it
+existed at the time; treat this top note as the source of truth for current scope.
+
 ## Repo layout
 
 ```
@@ -76,23 +83,23 @@ calculation → item list & detail/edit screens → Home dashboard shows the soo
 daily cron (`runDeadlineScan`) pushes a reminder 3 days before a deadline via Expo push, once a
 device registers a push token.
 
-**Milestone 3 (SubStop)** — Bank/card linking via Plaid's Hosted Link (`PLAID_CLIENT_ID`/
-`PLAID_SECRET` + `ENCRYPTION_KEY` required, see below), opened in an in-app browser so no native
-Plaid SDK/custom dev client is needed — works in Expo Go. A daily-testable `POST /bank/sync` pulls
-the last 90 days of transactions and runs a recurring-charge detector (grouped by normalized
-merchant, checked for consistent cadence + amount — see
+**Milestone 3 (SubStop)** — Bank/card linking via India's Account Aggregator framework
+(`ENCRYPTION_KEY` required, see below), opened in an in-app browser so no native SDK/custom dev
+client is needed — works in Expo Go. A daily-testable `POST /bank/sync` pulls the last 90 days of
+transactions and runs a recurring-charge detector (grouped by normalized merchant, checked for
+consistent cadence + amount — see
 `apps/server/src/modules/subscriptions/recurringDetection.ts`, unit-tested) into `DetectedSubscription`
 rows. The SubStop tab shows total monthly spend and lets you confirm/flag each subscription as
-still-in-use. **India bank-linking is not implemented** — it needs a signed Account Aggregator
-partner agreement (e.g. with Setu) and their specific API contract, which isn't publicly
-documented; see `accountAggregatorProvider.ts` for the honest stub.
+still-in-use. The full real consent flow and ReBIT FI-data decryption landed in Roadmap Milestone 4
+below; a signed Account Aggregator partner agreement (e.g. with Setu) is still required for real
+credentials, so it stays a clean 503 until then.
 
 **Milestone 4 (cancellation requests)** — Tapping a subscription offers "How do I cancel this?",
 which resolves one of three ways via a curated `KnownService` directory
 (`prisma/seed.ts`, matched against the normalized merchant name):
-- **Self-service (default, 14 seeded services)** — deep-links straight to the provider's real
-  account/cancellation page (Netflix, Spotify, Disney+, Amazon Prime, etc.) in an in-app browser.
-  Zero risk: it's just a URL.
+- **Self-service (default, seeded services)** — deep-links straight to the provider's real
+  account/cancellation page (Netflix, Spotify, Disney+ Hotstar, Amazon Prime, ZEE5, etc.) in an
+  in-app browser. Zero risk: it's just a URL.
 - **Email** — for services with a *verified* cancellation contact, drafts an email and shows the
   user the exact To/Subject/Body before sending; nothing goes out until they explicitly tap Send.
   The seed data ships with **zero** email entries on purpose — I couldn't verify real cancellation
@@ -101,16 +108,14 @@ which resolves one of three ways via a curated `KnownService` directory
   yourself once you've confirmed a company's real process (see the comment in `prisma/seed.ts`).
 - **Unknown** — generic guidance when no directory entry matches.
 
-**Milestone 5 (billing)** — A `PaymentProvider` abstraction (Stripe for US, Razorpay for India,
-selected by `user.country`) creates a hosted checkout/subscription-payment session, opened in the
-in-app browser (same pattern as Plaid's Hosted Link). Both providers' webhooks
-(`POST /billing/webhook/stripe`, `POST /billing/webhook/razorpay`) verify their real cryptographic
-signature before upgrading/downgrading `user.tier` — I verified this end-to-end by constructing
-correctly-signed test events myself (Stripe's `t=...,v1=HMAC-SHA256(...)` scheme and Razorpay's
-HMAC-SHA256-over-body scheme) since no live Stripe/Razorpay account was available; tampered
-signatures are correctly rejected with 400. The Settings screen shows an upgrade button for free
-users, and hitting the 5-item Warranty Wallet limit now prompts to upgrade instead of just
-erroring.
+**Milestone 5 (billing)** — A `PaymentProvider` abstraction (Razorpay) creates a hosted
+checkout/subscription-payment session, opened in the in-app browser (same pattern as the AA hosted
+consent flow). Its webhook (`POST /billing/webhook/razorpay`) verifies its real cryptographic
+signature (HMAC-SHA256-over-body) before upgrading/downgrading `user.tier` — I verified this
+end-to-end by constructing a correctly-signed test event myself since no live Razorpay account was
+available; tampered signatures are correctly rejected with 400. The Settings screen shows an
+upgrade button for free users, and hitting the 5-item Warranty Wallet limit now prompts to upgrade
+instead of just erroring.
 
 **Milestone 6 (email-forwarding receipts)** — Every user gets a personal forwarding address
 (shown in Settings with a copy button: `{random-token}@INBOUND_EMAIL_DOMAIN`). Forward any
@@ -250,7 +255,7 @@ auto-polling transition from "code shown" to "Connected" the moment the backend 
   purpose-built consent-explainer screen (what's shared, purpose, duration, revocation note)
   precedes the redirect to the AA's own consent-approval UI, and a `Consent-Notification` webhook
   updates status as the user acts. `PollLinkSession`/`exchangePublicToken` were extended (not
-  replaced) to fit this async, webhook-driven lifecycle rather than Plaid's synchronous one.
+  replaced) to fit this async, webhook-driven lifecycle.
 - **Real ReBIT FI-data encryption** — the AA framework's mandated end-to-end encryption (X25519
   ECDH key exchange + HKDF-SHA256 + AES-256-GCM) is a public, TSP-agnostic crypto spec, so it's
   implemented for real rather than stubbed, in `accountAggregator/aaEncryption.ts`. Unit-tested
@@ -284,9 +289,9 @@ completes the 5-milestone roadmap expansion:
 - **Revenue-share cancellation pricing** — an alternative to flat Premium: free-tier users pay
   nothing upfront, and only get charged (a 25% cut of a year's estimated savings) once they
   confirm a subscription cancellation actually worked, via `POST /subscriptions/:id/confirm-cancelled`.
-  Extended `PaymentProvider` with a one-time-charge method (Stripe one-off Checkout Session,
-  Razorpay Payment Link) alongside the existing flat-subscription checkout; both webhook parsers
-  now recognize a `savings_charge_completed` event distinct from subscription activation.
+  Extended `PaymentProvider` with a one-time-charge method (Razorpay Payment Link) alongside the
+  existing flat-subscription checkout; the webhook parser recognizes a `savings_charge_completed`
+  event distinct from subscription activation.
 - **Claims** — a `Claim` model unifying warranty-defect and return-assistance requests, filed
   from a warranty item's detail screen and listed on a dedicated Claims screen. Matches against a
   `ServiceCenterContact` directory that ships with **zero** rows on purpose — same honest
@@ -311,9 +316,9 @@ completes the 5-milestone roadmap expansion:
   with no meaningful loss of legibility for Claude's vision extraction.
 
 I verified the full revenue-share billing loop end-to-end: confirmed the free-tier charge-creation
-path fails cleanly (503) without Stripe/Razorpay credentials, then completed it with a
-hand-signed Stripe webhook event and confirmed the `CancellationSavingsCharge` row flipped to
-`charged` with the right provider payment-intent id. Verified household create/invite/join/
+path fails cleanly (503) without Razorpay credentials, then completed it with a
+hand-signed Razorpay webhook event and confirmed the `CancellationSavingsCharge` row flipped to
+`charged` with the right provider payment id. Verified household create/invite/join/
 shared-visibility/owner-leave-dissolves-household against the dev database with two real test
 users, claims filing (confirmed the honest zero-contact behavior), and the CSV export/DPDP content
 (confirmed it only lists categories for connections that actually exist). Confirmed all the new
@@ -357,16 +362,16 @@ cases (6 new) pass; both apps typecheck clean.
 See `apps/server/.env.example` for the full list. Required so far:
 - **`ANTHROPIC_API_KEY`** (Milestone 2) — `POST /receipts` returns a clear 503 without it, rather
   than crashing.
-- **`PLAID_CLIENT_ID` / `PLAID_SECRET` / `ENCRYPTION_KEY`** (Milestone 3, US bank-linking only) —
-  `POST /bank/link-token` returns a clear 503 without them. Get free Sandbox keys at
-  https://dashboard.plaid.com/; generate `ENCRYPTION_KEY` with `openssl rand -hex 32`.
+- **`ENCRYPTION_KEY`** (Milestone 3, bank-linking) — `POST /bank/link-token` returns a clear 503
+  without it. Generate with `openssl rand -hex 32`.
+- **`SETU_AA_CLIENT_ID` / `SETU_AA_CLIENT_SECRET` / `SETU_AA_PRODUCT_INSTANCE_ID`** (roadmap
+  Milestone 4, real Account Aggregator credentials) — requires a signed FIU partner agreement;
+  stays a clean 503 until then.
 - **`POSTMARK_SERVER_TOKEN` / `CANCELLATION_FROM_EMAIL`** (Milestone 4, email-cancellation only) —
   only matters once you add a verified `email`-method row to `KnownService`; self-service
   cancellation links work without them.
-- **`STRIPE_SECRET_KEY` / `STRIPE_PRICE_ID` / `STRIPE_WEBHOOK_SECRET`** (Milestone 5, US billing) —
-  create a recurring Price in your Stripe dashboard first.
 - **`RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_PLAN_ID` / `RAZORPAY_WEBHOOK_SECRET`**
-  (Milestone 5, India billing) — create a Plan in your Razorpay dashboard first.
+  (Milestone 5, billing) — create a Plan in your Razorpay dashboard first.
 - **`INBOUND_EMAIL_DOMAIN` / `POSTMARK_INBOUND_SIGNATURE_SECRET`** (Milestone 6, receipt
   forwarding) — set up Postmark's inbound-parse for the domain, pointed at
   `POST /inbound-email/webhook/{that secret}`.

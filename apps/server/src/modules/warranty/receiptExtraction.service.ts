@@ -26,7 +26,7 @@ const RECORD_RECEIPT_TOOL = {
       },
       currency: {
         type: ["string", "null"],
-        description: "The ISO 4217 currency code (e.g. USD, INR), or null if not determinable.",
+        description: "The ISO 4217 currency code (e.g. INR), or null if not determinable.",
       },
     },
     required: ["itemName", "retailer", "purchaseDate", "price", "currency"],
