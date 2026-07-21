@@ -1,0 +1,22 @@
+{
+  "name": "thrifty",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=@thrifty/server",
+    "dev:mobile": "npm run start --workspace=@thrifty/mobile",
+    "build:shared": "npm run build --workspace=@thrifty/shared",
+    "prisma:generate": "npm run prisma:generate --workspace=@thrifty/server",
+    "prisma:migrate": "npm run prisma:migrate --workspace=@thrifty/server"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "expo-router": "57.0.7"
+  }
+}

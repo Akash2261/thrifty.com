@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sI https://nodejs.org/dist/latest-v22.x/)",
+      "Bash(curl -s https://nodejs.org/dist/latest-v22.x/)",
+      "Bash(mkdir -p \"/Users/akashtomar/My Claude Applications/.tools\")",
+      "Bash(curl -sL -o node.tar.gz \"https://nodejs.org/dist/latest-v22.x/node-v22.23.1-darwin-arm64.tar.gz\")",
+      "Bash(tar -xzf node.tar.gz)",
+      "Bash(rm node.tar.gz)",
+      "Bash(mv node-v22.23.1-darwin-arm64 node)",
+      "Bash(cd \"/Users/akashtomar/My Claude Applications\" && mkdir -p apps/server apps/mobile packages/shared && ls -la)",
+      "Bash(pkill -f \"tsx src/index.ts\")",
+      "WebFetch(domain:docs.expo.dev)",
+      "Bash(rm -rf \"/Users/akashtomar/My Claude Applications/apps/mobile/.git\")",
+      "Bash(env)",
+      "Bash(pkill -f \"expo start --web\")",
+      "Bash(pkill -f \"expo/node_modules/@expo/cli\")",
+      "Bash(python3 -c ' *)",
+      "Read(//tmp/**)",
+      "WebFetch(domain:docs.setu.co)",
+      "WebFetch(domain:plaid.com)",
+      "WebFetch(domain:help.calm.com)",
+      "WebFetch(domain:help.netflix.com)",
+      "WebFetch(domain:www.amazon.com)",
+      "Bash(git mv *)",
+      "WebFetch(domain:razorpay.com)",
+      "WebFetch(domain:postmarkapp.com)"
+    ]
+  }
+}
