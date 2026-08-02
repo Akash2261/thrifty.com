@@ -31,6 +31,13 @@ everything else needs either your accounts/credentials or a business decision.
       `apps/mobile/src/api/client.ts`), and both `preview` and `production` profiles now
       point at `https://thrifty-com-server.vercel.app` (the stable project domain, not a
       one-off per-deployment URL — those change on every deploy).
+- [ ] **Web app deployment** — `apps/mobile` (which already has full web support via Expo
+      Router + react-native-web) is set up to deploy as a static site to a **second** Vercel
+      project pointed at the same GitHub repo. See [DEPLOYMENT.md](DEPLOYMENT.md)'s
+      "Deploying the web app" section for the exact steps and required
+      `EXPO_PUBLIC_API_BASE_URL` env var. **Not yet actually deployed** — needs you to
+      create that second Vercel project (Root Directory: `apps/mobile`) the same way you
+      did for the backend.
 
 ## Phase 1 — Real third-party credentials
 Everything below is coded and "inert until configured" — each integration cleanly
