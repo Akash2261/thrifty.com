@@ -18,14 +18,14 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "REPLACE_WITH_STAGING_BACKEND_URL"
+        "EXPO_PUBLIC_API_BASE_URL": "https://thrifty-com-server.vercel.app"
       }
     },
     "production": {
       "channel": "production",
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "REPLACE_WITH_PRODUCTION_BACKEND_URL"
+        "EXPO_PUBLIC_API_BASE_URL": "https://thrifty-com-server.vercel.app"
       }
     }
   },

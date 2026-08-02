@@ -4,41 +4,33 @@ Ordered by what unblocks the most. Items marked **DONE** were completed in this 
 everything else needs either your accounts/credentials or a business decision.
 
 ## Phase 0 — Backend deployment (blocks everything below)
-- [x] **DONE** — [Dockerfile](Dockerfile) + [.dockerignore](.dockerignore) at the repo root
-      (multi-stage build: compiles `packages/shared` then `apps/server`, runs
-      `prisma migrate deploy` before boot). **Not yet build-tested** — no Docker daemon was
-      available to actually run `docker build`; see the warning at the top of
-      [DEPLOYMENT.md](DEPLOYMENT.md). Run that build once yourself before trusting it.
-- [ ] Actually deploy it — [DEPLOYMENT.md](DEPLOYMENT.md) has concrete steps for Fly.io,
-      Railway, Render, any Docker-capable VPS, or Vercel, plus the secrets to generate first.
-      Needs a real domain and HTTPS. Right now the app only knows how to reach
-      `http://localhost:4000` (or `10.0.2.2:4000` on the Android emulator) — no build can
-      reach a real backend until this exists.
-- [x] **DONE — Vercel support added and actively being deployed.** Since you're deploying
-      via Vercel specifically: [`apps/server/api/handler.ts`](apps/server/api/handler.ts)
-      is the Vercel entrypoint (classic `/api` directory convention — Vercel's
-      auto-detected "captured Node server" convention was tried first but misfired in this
-      monorepo, so this is the explicit, unambiguous version instead), reached via a
-      catch-all rewrite in [`apps/server/vercel.json`](apps/server/vercel.json). It skips
-      `node-cron`/BullMQ, which don't survive serverless; the three scheduled jobs instead
-      exist as HTTP routes (`/cron/deadline-scan`, `/cron/subscription-digest`,
-      `/cron/consent-expiry`) gated by a `CRON_SECRET` env var, wired up as real Vercel Cron
-      Jobs in the same `vercel.json`. **Set `CRON_SECRET` in the Vercel project's env
-      vars** and **set `STORAGE_PROVIDER=s3`** (mandatory there, not optional — Vercel's
-      filesystem doesn't persist between requests at all). Full details in
-      [DEPLOYMENT.md](DEPLOYMENT.md)'s Option E. This has gone through several real
-      deploy-and-fix iterations already (build ordering, env var validation crashing
-      silently, the entrypoint-detection issue) — each one fixed based on actual Vercel
-      logs, not guessed. If you hit another error, paste the actual Runtime Log text and
+- [x] **DONE — deployed and verified live on Vercel.**
+      `https://thrifty-com-server.vercel.app/health` returns `{"status":"ok"}`.
+      [`apps/server/api/handler.ts`](apps/server/api/handler.ts) is the Vercel entrypoint
+      (classic `/api` directory convention — Vercel's auto-detected "captured Node server"
+      convention was tried first but misfired in this monorepo, so this is the explicit,
+      unambiguous version instead), reached via a catch-all rewrite in
+      [`apps/server/vercel.json`](apps/server/vercel.json). It skips `node-cron`/BullMQ,
+      which don't survive serverless; the three scheduled jobs instead exist as HTTP
+      routes (`/cron/deadline-scan`, `/cron/subscription-digest`, `/cron/consent-expiry`)
+      gated by a `CRON_SECRET` env var, wired up as real Vercel Cron Jobs in the same
+      `vercel.json`. Postgres is provisioned (Neon, via Vercel's Storage tab) and
+      `DATABASE_URL`/`JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET`/`ENCRYPTION_KEY` are all set.
+      **Still confirm `STORAGE_PROVIDER=s3` is set** (mandatory on Vercel — its filesystem
+      doesn't persist between requests at all; not yet confirmed as of this checklist
+      update). This took several real deploy-and-fix iterations (build ordering, env var
+      validation crashing silently, an entrypoint-detection issue, a Fastify/TypeScript
+      typing quirk) — each fixed from actual Vercel logs, not guessed. If you hit another
+      error later (e.g. after adding more integrations), paste the Runtime Log text and
       it'll get fixed the same way.
-- [ ] Deploy Postgres for that environment (docker-compose.yml has the shape for local dev;
-      use a managed instance in production). Redis is optional — only needed once you set
-      up Gmail/Outlook email-sync polling.
+- [x] **DONE** — the Dockerfile path (Fly.io/Railway/Render/VPS, see
+      [DEPLOYMENT.md](DEPLOYMENT.md) Options A–D) remains available as an alternative if
+      you ever want off Vercel, but is unused/untested now that Vercel is the live deployment.
 - [x] **DONE** — API base URL is now overridable per EAS build profile via
       `EXPO_PUBLIC_API_BASE_URL` (see `apps/mobile/eas.json` and
-      `apps/mobile/src/api/client.ts`). Once you have real staging/production URLs, drop
-      them into `eas.json`'s `preview`/`production` `env` blocks, replacing the
-      `REPLACE_WITH_..._BACKEND_URL` placeholders.
+      `apps/mobile/src/api/client.ts`), and both `preview` and `production` profiles now
+      point at `https://thrifty-com-server.vercel.app` (the stable project domain, not a
+      one-off per-deployment URL — those change on every deploy).
 
 ## Phase 1 — Real third-party credentials
 Everything below is coded and "inert until configured" — each integration cleanly
@@ -182,11 +174,12 @@ these need code changes, only accounts + env vars on the deployed server.
 ---
 
 ## What's genuinely blocking you right now
-In priority order: **(1)** actually running `docker build` once to confirm the Dockerfile
-works, then deploying it somewhere per [DEPLOYMENT.md](DEPLOYMENT.md), **(2)** a Play
-Console developer account + its API service account key, **(3)** a Firebase project +
-`google-services.json` for Android push, **(4)** legal review of
-[PRIVACY_POLICY.md](PRIVACY_POLICY.md), **(5)** an `eas login` + real production build
-(needs your Expo account — not something this session can do for you). Everything else in
-Phase 1 (the third-party credentials) can be obtained in parallel and added to the
-deployed backend's env vars without further code changes.
+The backend is deployed and live, so this list is shorter now. In priority order:
+**(1)** confirm `STORAGE_PROVIDER=s3` (plus real `S3_*` credentials) is set in Vercel —
+receipt uploads are silently broken without it, **(2)** a Play Console developer account +
+its API service account key, **(3)** a Firebase project + `google-services.json` for
+Android push, **(4)** legal review of [PRIVACY_POLICY.md](PRIVACY_POLICY.md), **(5)** an
+`eas login` + real production build (needs your Expo account — not something this session
+can do for you). Everything else in Phase 1 (the third-party credentials — Anthropic,
+Razorpay, Setu, Google/Microsoft OAuth, Twilio, WhatsApp, Postmark, Sentry, PostHog) can be
+added to Vercel's env vars in parallel, no further code changes needed.
