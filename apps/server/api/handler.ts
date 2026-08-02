@@ -26,16 +26,17 @@ if (process.env.VERCEL && process.env.STORAGE_PROVIDER !== "s3") {
 
 // Built once per warm function instance (not per-request) — Fastify's own router handles every
 // request from there via the raw http.Server it wraps internally.
-let readyApp: ReturnType<typeof buildApp> | null = null;
-let readyPromise: Promise<void> | null = null;
+let appPromise: Promise<ReturnType<typeof buildApp>> | null = null;
 
-async function getApp() {
-  if (!readyApp) {
-    readyApp = buildApp();
-    readyPromise = readyApp.ready();
+function getApp() {
+  if (!appPromise) {
+    const app = buildApp();
+    // .ready() returns a thenable (FastifyInstance & PromiseLike<...>), not a strict Promise, and
+    // PromiseLike#then() only returns another PromiseLike -- Promise.resolve(...) here normalizes
+    // the whole chain to a real Promise so the declared Promise<FastifyInstance> type holds.
+    appPromise = Promise.resolve(app.ready()).then(() => app);
   }
-  await readyPromise;
-  return readyApp;
+  return appPromise;
 }
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
