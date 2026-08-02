@@ -1,7 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "cd ../.. && npm install",
-  "buildCommand": "cd ../.. && npm run build:shared && npm run prisma:generate --workspace=@thrifty/server",
   "crons": [
     { "path": "/cron/deadline-scan", "schedule": "0 9 * * *" },
     { "path": "/cron/subscription-digest", "schedule": "0 9 1 * *" },

@@ -94,13 +94,17 @@ A–D:
   it's typically gone by the very next request. `STORAGE_PROVIDER=s3` (plus the `S3_*` vars) is
   **required** here, not a nice-to-have. `src/server.ts` logs a startup warning if it detects
   you're on Vercel without it, but won't block boot.
-- **Monorepo build.** [`apps/server/vercel.json`](apps/server/vercel.json) sets an explicit
-  `installCommand`/`buildCommand` that `cd`s to the repo root to install dependencies, build the
-  `packages/shared` workspace package, and run `prisma generate` — all before the server function
-  builds. This assumes the Vercel project's **Root Directory** is set to `apps/server` (Project
-  Settings → Build and Deployment → Root Directory) — check that's actually how the project is
-  configured before deploying; if Root Directory is set to the repo root instead, this
-  `vercel.json` needs adjusting (drop the `cd ../..` and reference `apps/server` explicitly instead).
+- **Monorepo build.** Vercel runs `apps/server`'s own `npm run build` script directly rather than
+  honoring a custom `buildCommand` in `vercel.json` (confirmed against a real failed deployment —
+  it ran plain `tsc` before `packages/shared` existed or `prisma generate` had run, producing a wall
+  of "cannot find module '@thrifty/shared'" / "no exported member" errors). Fixed by making
+  `apps/server/package.json`'s `build` script self-sufficient: it `cd`s to the repo root, builds
+  `packages/shared`, runs `prisma generate`, then compiles — correct regardless of how Vercel
+  happens to invoke it. `apps/server/vercel.json` still sets `installCommand` (that part *was*
+  being honored) but no longer overrides the build. This assumes the Vercel project's **Root
+  Directory** is set to `apps/server` (Project Settings → Build and Deployment → Root Directory) —
+  the failed build's logs showed commands running from `/vercel/path0/apps/server`, consistent with
+  that setting; double check it's actually configured that way.
 - **Function duration limits.** Receipt extraction calls Claude's vision API, which can take a
   few seconds — the Hobby plan's default function timeout is short. If extraction requests start
   timing out, raise `maxDuration` for that route (see Vercel's Functions docs) or move to Pro.
