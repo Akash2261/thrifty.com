@@ -14,9 +14,13 @@ const EnvSchema = z.object({
 
 const parsed = EnvSchema.safeParse(process.env);
 if (!parsed.success) {
-  console.error("Invalid environment configuration:");
-  console.error(parsed.error.flatten().fieldErrors);
-  process.exit(1);
+  // Throw rather than process.exit(1): on a persistent host this still crashes the process
+  // immediately (an uncaught exception at module load), but on Vercel, exiting the process
+  // abruptly instead of throwing appears to prevent the error from ever reaching the function's
+  // logs -- surfacing only as an opaque FUNCTION_INVOCATION_FAILED with no message.
+  throw new Error(
+    `Invalid environment configuration: ${JSON.stringify(parsed.error.flatten().fieldErrors)}`,
+  );
 }
 
 export const env = parsed.data;
