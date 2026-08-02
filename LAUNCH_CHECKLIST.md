@@ -14,18 +14,23 @@ everything else needs either your accounts/credentials or a business decision.
       Needs a real domain and HTTPS. Right now the app only knows how to reach
       `http://localhost:4000` (or `10.0.2.2:4000` on the Android emulator) — no build can
       reach a real backend until this exists.
-- [x] **DONE — Vercel support added.** Since you're deploying via Vercel specifically:
-      [`apps/server/src/server.ts`](apps/server/src/server.ts) is a Vercel-only entrypoint
-      (skips `node-cron`/BullMQ, which don't survive serverless), the three scheduled jobs
-      now also exist as HTTP routes (`/cron/deadline-scan`, `/cron/subscription-digest`,
-      `/cron/consent-expiry`) gated by a `CRON_SECRET` env var, and
-      [`apps/server/vercel.json`](apps/server/vercel.json) wires those up as real Vercel
-      Cron Jobs plus a monorepo-aware build command. **Set `CRON_SECRET` in the Vercel
-      project's env vars** and **set `STORAGE_PROVIDER=s3`** (mandatory there, not
-      optional — Vercel's filesystem doesn't persist between requests at all). Full
-      details in [DEPLOYMENT.md](DEPLOYMENT.md)'s Option E. **Not yet verified against a
-      real Vercel deployment** — this sandbox has no way to run `vercel build`/`vercel dev`
-      locally, so treat the first real deploy as the test.
+- [x] **DONE — Vercel support added and actively being deployed.** Since you're deploying
+      via Vercel specifically: [`apps/server/api/handler.ts`](apps/server/api/handler.ts)
+      is the Vercel entrypoint (classic `/api` directory convention — Vercel's
+      auto-detected "captured Node server" convention was tried first but misfired in this
+      monorepo, so this is the explicit, unambiguous version instead), reached via a
+      catch-all rewrite in [`apps/server/vercel.json`](apps/server/vercel.json). It skips
+      `node-cron`/BullMQ, which don't survive serverless; the three scheduled jobs instead
+      exist as HTTP routes (`/cron/deadline-scan`, `/cron/subscription-digest`,
+      `/cron/consent-expiry`) gated by a `CRON_SECRET` env var, wired up as real Vercel Cron
+      Jobs in the same `vercel.json`. **Set `CRON_SECRET` in the Vercel project's env
+      vars** and **set `STORAGE_PROVIDER=s3`** (mandatory there, not optional — Vercel's
+      filesystem doesn't persist between requests at all). Full details in
+      [DEPLOYMENT.md](DEPLOYMENT.md)'s Option E. This has gone through several real
+      deploy-and-fix iterations already (build ordering, env var validation crashing
+      silently, the entrypoint-detection issue) — each one fixed based on actual Vercel
+      logs, not guessed. If you hit another error, paste the actual Runtime Log text and
+      it'll get fixed the same way.
 - [ ] Deploy Postgres for that environment (docker-compose.yml has the shape for local dev;
       use a managed instance in production). Redis is optional — only needed once you set
       up Gmail/Outlook email-sync polling.

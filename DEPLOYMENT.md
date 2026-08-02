@@ -72,11 +72,15 @@ Vercel doesn't run this Dockerfile at all — it's a genuinely different deploym
 functions, not a persistent container), so a few things behave differently here than in Options
 A–D:
 
-- **What runs and what doesn't.** [`src/server.ts`](apps/server/src/server.ts) is a
-  Vercel-specific entrypoint (Vercel auto-detects a `src/server.{js,ts}` file that calls
-  `.listen()` and captures it as a Function). It builds and starts the same Fastify app as every
-  other host, **except** it does not start `node-cron` or the BullMQ email-sync worker — neither
-  survives in a model where nothing keeps one process running between requests. Instead:
+- **What runs and what doesn't.** [`api/handler.ts`](apps/server/api/handler.ts) is the
+  Vercel-specific entrypoint, using the classic `/api` directory convention (a real file, not
+  Vercel's auto-detected "captured Node server" convention — that one misfired in this monorepo,
+  identifying a plain helper module as an invalid entrypoint; explicit beats implicit here). A
+  catch-all rewrite in [`vercel.json`](apps/server/vercel.json) sends every path to it while
+  preserving the original URL, so Fastify's own router still sees `/auth/signup` etc. as normal.
+  It builds and starts the same Fastify app as every other host, **except** it does not start
+  `node-cron` or the BullMQ email-sync worker — neither survives in a model where nothing keeps one
+  process running between requests. Instead:
   - The three scheduled jobs (deadline scan, subscription digest, consent-expiry check) run as real
     **Vercel Cron Jobs** hitting `/cron/deadline-scan`, `/cron/subscription-digest`, and
     `/cron/consent-expiry` on the same schedule `src/index.ts` uses elsewhere — see
@@ -92,7 +96,7 @@ A–D:
 - **Storage is mandatory, not optional.** Vercel Functions have an ephemeral filesystem between
   invocations — local-disk receipt storage isn't just "gets wiped on redeploy" like a container,
   it's typically gone by the very next request. `STORAGE_PROVIDER=s3` (plus the `S3_*` vars) is
-  **required** here, not a nice-to-have. `src/server.ts` logs a startup warning if it detects
+  **required** here, not a nice-to-have. `api/handler.ts` logs a startup warning if it detects
   you're on Vercel without it, but won't block boot.
 - **Monorepo build.** Vercel runs `apps/server`'s own `npm run build` script directly rather than
   honoring a custom `buildCommand` in `vercel.json` (confirmed against a real failed deployment —
