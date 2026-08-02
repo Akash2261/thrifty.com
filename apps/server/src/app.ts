@@ -15,6 +15,7 @@ import whatsappRoutes from "./modules/whatsapp/whatsapp.routes";
 import claimsRoutes from "./modules/claims/claims.routes";
 import householdRoutes from "./modules/household/household.routes";
 import accountRoutes from "./modules/account/account.routes";
+import cronRoutes from "./modules/cron/cron.routes";
 import { captureError } from "./lib/sentry";
 import { AppError } from "./lib/errors";
 
@@ -61,6 +62,7 @@ export function buildApp() {
   app.register(claimsRoutes);
   app.register(householdRoutes);
   app.register(accountRoutes);
+  app.register(cronRoutes);
 
   app.get("/health", async () => ({ status: "ok" }));
 

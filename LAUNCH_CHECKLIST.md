@@ -10,10 +10,22 @@ everything else needs either your accounts/credentials or a business decision.
       available to actually run `docker build`; see the warning at the top of
       [DEPLOYMENT.md](DEPLOYMENT.md). Run that build once yourself before trusting it.
 - [ ] Actually deploy it — [DEPLOYMENT.md](DEPLOYMENT.md) has concrete steps for Fly.io,
-      Railway, Render, or any Docker-capable VPS, plus the secrets to generate first. Needs
-      a real domain and HTTPS. Right now the app only knows how to reach
+      Railway, Render, any Docker-capable VPS, or Vercel, plus the secrets to generate first.
+      Needs a real domain and HTTPS. Right now the app only knows how to reach
       `http://localhost:4000` (or `10.0.2.2:4000` on the Android emulator) — no build can
       reach a real backend until this exists.
+- [x] **DONE — Vercel support added.** Since you're deploying via Vercel specifically:
+      [`apps/server/src/server.ts`](apps/server/src/server.ts) is a Vercel-only entrypoint
+      (skips `node-cron`/BullMQ, which don't survive serverless), the three scheduled jobs
+      now also exist as HTTP routes (`/cron/deadline-scan`, `/cron/subscription-digest`,
+      `/cron/consent-expiry`) gated by a `CRON_SECRET` env var, and
+      [`apps/server/vercel.json`](apps/server/vercel.json) wires those up as real Vercel
+      Cron Jobs plus a monorepo-aware build command. **Set `CRON_SECRET` in the Vercel
+      project's env vars** and **set `STORAGE_PROVIDER=s3`** (mandatory there, not
+      optional — Vercel's filesystem doesn't persist between requests at all). Full
+      details in [DEPLOYMENT.md](DEPLOYMENT.md)'s Option E. **Not yet verified against a
+      real Vercel deployment** — this sandbox has no way to run `vercel build`/`vercel dev`
+      locally, so treat the first real deploy as the test.
 - [ ] Deploy Postgres for that environment (docker-compose.yml has the shape for local dev;
       use a managed instance in production). Redis is optional — only needed once you set
       up Gmail/Outlook email-sync polling.
