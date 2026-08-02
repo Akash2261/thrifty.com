@@ -24,22 +24,16 @@ if (process.env.VERCEL && process.env.STORAGE_PROVIDER !== "s3") {
   );
 }
 
-// Built once per warm function instance (not per-request) — Fastify's own router handles every
-// request from there via the raw http.Server it wraps internally.
-let appPromise: Promise<ReturnType<typeof buildApp>> | null = null;
-
-function getApp() {
-  if (!appPromise) {
-    const app = buildApp();
-    // .ready() returns a thenable (FastifyInstance & PromiseLike<...>), not a strict Promise, and
-    // PromiseLike#then() only returns another PromiseLike -- Promise.resolve(...) here normalizes
-    // the whole chain to a real Promise so the declared Promise<FastifyInstance> type holds.
-    appPromise = Promise.resolve(app.ready()).then(() => app);
-  }
-  return appPromise;
-}
+// Built once at module load (not per-request, and not lazily) — reused across warm invocations of
+// this function, same idea as any "reuse the DB connection across warm Lambda starts" pattern.
+// Deliberately NOT lazily built inside the handler: FastifyInstance is itself thenable (it
+// supports `await fastify`), which made every lazy-init variant of this fight TypeScript's
+// automatic thenable-flattening in confusing ways. A plain top-level const sidesteps all of it —
+// no nullable narrowing, no promise-of-a-thenable typing.
+const app = buildApp();
+const appReady = Promise.resolve(app.ready());
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
-  const app = await getApp();
+  await appReady;
   app.server.emit("request", req, res);
 }
