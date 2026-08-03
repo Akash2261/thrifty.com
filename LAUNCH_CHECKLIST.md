@@ -31,13 +31,17 @@ everything else needs either your accounts/credentials or a business decision.
       `apps/mobile/src/api/client.ts`), and both `preview` and `production` profiles now
       point at `https://thrifty-com-server.vercel.app` (the stable project domain, not a
       one-off per-deployment URL — those change on every deploy).
-- [ ] **Web app deployment** — `apps/mobile` (which already has full web support via Expo
-      Router + react-native-web) is set up to deploy as a static site to a **second** Vercel
-      project pointed at the same GitHub repo. See [DEPLOYMENT.md](DEPLOYMENT.md)'s
-      "Deploying the web app" section for the exact steps and required
-      `EXPO_PUBLIC_API_BASE_URL` env var. **Not yet actually deployed** — needs you to
-      create that second Vercel project (Root Directory: `apps/mobile`) the same way you
-      did for the backend.
+- [ ] **Web app deployment — moved to its own repo.** Deploying the web build from inside
+      this monorepo (second Vercel project, Root Directory: `apps/mobile`) kept hitting
+      monorepo-specific issues on top of the backend's, so it's been split into a
+      standalone repo (`~/thrifty-web`) instead — a self-contained copy of the same app
+      (same screens, same auth, same API client) with `packages/shared` inlined rather
+      than referenced as a workspace, so there's no Root Directory ambiguity and no `cd`
+      tricks needed at all. **Still needs**: pushing that repo to its own GitHub repo, a
+      new Vercel project pointed at it (repo root = app root, no Root Directory setting
+      needed), and `EXPO_PUBLIC_API_BASE_URL=https://thrifty-com-server.vercel.app` set in
+      *that* project's env vars. See `~/thrifty-web`'s own commit history for the full
+      setup, and [DEPLOYMENT.md](DEPLOYMENT.md) for why it was split out.
 
 ## Phase 1 — Real third-party credentials
 Everything below is coded and "inert until configured" — each integration cleanly

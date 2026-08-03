@@ -132,63 +132,22 @@ A–D:
 
 ---
 
-# Deploying the web app
+# The web app lives in a separate repo
 
-`apps/mobile` isn't just a mobile app — it's an Expo Router app, and Expo Router ships with real
-web support via `react-native-web`. Rather than build a separate web frontend from scratch, this
-deploys the *same* app (same screens, same auth, same API client) as a static website. Camera-only
-flows (receipt photo capture) won't work the same way in a browser, but everything else — sign-in,
-warranty tracking, SubStop, Settings — runs as-is; this was confirmed rendering correctly earlier
-this session (`npm run web --workspace=@thrifty/mobile`, viewed in a browser).
+An earlier version of this doc described deploying `apps/mobile`'s web build (Expo Router +
+react-native-web) as a second Vercel project pointed at *this* repo, with Root Directory set to
+`apps/mobile`. That approach kept hitting monorepo-specific Vercel issues (Root Directory ambiguity,
+`npm run build` not honoring a custom `buildCommand`, needing `cd ../..` tricks for the
+`packages/shared` workspace dependency) on top of the ones the backend already had to work through.
 
-## Set up a second Vercel project
+It's since been split into its own standalone repo — `~/thrifty-web`, a self-contained copy of the
+same app (same screens, same auth, same API client) plus an inlined copy of `packages/shared`, with
+no monorepo indirection at all: the repo root **is** the app, so there's no Root Directory setting
+to get wrong and no `cd` tricks needed. See that repo's own `vercel.json` and commit history for the
+full setup; the one thing to remember is it needs `EXPO_PUBLIC_API_BASE_URL` set to
+`https://thrifty-com-server.vercel.app` in *its own* Vercel project's environment variables (a third,
+independent place this needs to be set, distinct from both this backend's config and
+`apps/mobile/eas.json`).
 
-This is a **separate Vercel project from the backend** (`thrifty-com-server`), pointed at the same
-GitHub repo:
-
-1. Vercel dashboard → **Add New… → Project**
-2. Import the same repo (`Akash2261/thrifty.com`) again — Vercel lets you create multiple projects
-   from one repo, one per directory (see their [monorepo docs](https://vercel.com/docs/monorepos))
-3. Set **Root Directory** to `apps/mobile`
-4. **Framework Preset**: choose "Other" (not Next.js/React — this isn't either; `vercel.json`
-   handles the actual build/output config)
-
-## Required environment variable
-
-Set **`EXPO_PUBLIC_API_BASE_URL`** to the backend's stable URL (`https://thrifty-com-server.vercel.app`)
-in this new project's Environment Variables. This is genuinely required, not optional — Expo inlines
-`EXPO_PUBLIC_*` vars into the JS bundle at build time, and without it the web build falls back to
-`http://localhost:4000`, which won't exist in production. (This is separate from `apps/mobile/eas.json`,
-which only configures EAS-triggered native builds, not this static web build.)
-
-## What's already wired up
-
-- [`apps/mobile/vercel.json`](apps/mobile/vercel.json) — `installCommand` builds the whole
-  workspace from the repo root (needed for the `packages/shared` dependency), `outputDirectory`
-  points at `dist` (Expo's static export output), `framework: null` (this isn't a framework Vercel
-  auto-configures), and a catch-all rewrite so client-side routing (expo-router) handles every path
-  instead of Vercel 404ing on deep links like `/settings`.
-- `apps/mobile/package.json`'s `build` script — `cd ../.. && npm run build:shared && cd apps/mobile
-  && npx expo export -p web`. Made self-sufficient (builds `packages/shared` itself) rather than
-  relying on `vercel.json`'s `buildCommand`, following the same lesson learned deploying the
-  backend: Vercel ran the workspace's own `npm run build` directly there, ignoring a `buildCommand`
-  override in `vercel.json`.
-
-## Not yet verified against a real Vercel build
-
-Everything above is written carefully (matches the pattern that worked for the backend, and follows
-Expo's own documented static-web-to-Vercel deployment steps), but — same as the backend the first
-few times — treat the first real deploy as the actual test. If it fails, paste the Build Log or
-Runtime Log text and it'll get fixed the same way the backend's issues were: from the actual error,
-not guessed.
-
-## After it's deployed
-
-1. Visit the deployed URL — should load the sign-in screen (same one already confirmed rendering
-   correctly via local web preview earlier this session).
-2. Confirm sign-up/sign-in actually round-trips to the backend (tests both `EXPO_PUBLIC_API_BASE_URL`
-   and the backend's CORS config — already permissive, `origin: true` in `apps/server/src/app.ts`,
-   so cross-origin requests from this separate domain should work without changes).
-3. Camera-based receipt capture won't work the same as on a native device — browsers can still pick
-   an existing photo via file input, but there's no live camera scan flow; this is an inherent
-   web-vs-native difference, not a bug to fix here.
+`apps/mobile` here in the main repo goes back to being purely the source for native (EAS) builds —
+no `vercel.json`, no web-specific `build` script.

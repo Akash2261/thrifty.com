@@ -2,8 +2,8 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
 // expo-secure-store wraps the iOS Keychain / Android Keystore and has no web
-// implementation, so the web build (also deployed for real, not just local
-// preview) falls back to localStorage instead of crashing.
+// implementation. Web is only used for local UI iteration (Thrifty ships as a
+// mobile app), so it falls back to localStorage there instead of crashing.
 const isWeb = Platform.OS === "web";
 
 export const ACCESS_TOKEN_KEY = "thrifty.accessToken";
