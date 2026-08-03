@@ -6,6 +6,7 @@ node_modules/
 dist/
 build/
 .expo/
+.next/
 *.log
 .DS_Store
 google-play-service-account.json

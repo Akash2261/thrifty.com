@@ -132,7 +132,7 @@ A–D:
 
 ---
 
-# The web app lives in a separate repo
+# Web app #1 — `~/thrifty-web` (standalone repo, Expo-web mirror of the mobile app)
 
 An earlier version of this doc described deploying `apps/mobile`'s web build (Expo Router +
 react-native-web) as a second Vercel project pointed at *this* repo, with Root Directory set to
@@ -149,5 +149,34 @@ full setup; the one thing to remember is it needs `EXPO_PUBLIC_API_BASE_URL` set
 independent place this needs to be set, distinct from both this backend's config and
 `apps/mobile/eas.json`).
 
-`apps/mobile` here in the main repo goes back to being purely the source for native (EAS) builds —
-no `vercel.json`, no web-specific `build` script.
+`apps/mobile` here in the main repo is purely the source for native (EAS) builds — no
+`vercel.json`, no web-specific `build` script.
+
+# Web app #2 — `apps/web` (in-monorepo Next.js app, real web frontend)
+
+`apps/web` is a separate, purpose-built Next.js app (not an Expo-web export) with its own UI —
+sign-in/up, Home, Warranty Wallet, SubStop, Claims, Settings — talking to the same backend via a
+server-side session layer (httpOnly cookies + an authenticated proxy route; the browser never
+calls the Fastify backend directly, so `THRIFTY_API_BASE_URL` is a server-only env var, no
+`NEXT_PUBLIC_` prefix, no CORS exposure).
+
+**Deploying it on Vercel:**
+1. New Vercel project → import this GitHub repo → set **Root Directory** to `apps/web` (Project
+   Settings → Build and Deployment). Framework should auto-detect as Next.js.
+2. Add one environment variable: `THRIFTY_API_BASE_URL=https://thrifty-com-server.vercel.app`
+   (or whatever the backend's deployed URL is) — this is the fourth independent place a backend
+   URL needs to be configured, alongside `apps/mobile/eas.json`, this backend's own config, and
+   `~/thrifty-web`'s Vercel project.
+3. [`apps/web/vercel.json`](apps/web/vercel.json) sets `installCommand` to
+   `cd ../.. && npm install && npm run build:shared` — installing from the repo root (required for
+   npm workspaces to symlink `@thrifty/shared` correctly) and building `packages/shared` *during
+   install*, not build. This sidesteps the exact failure mode documented above and in Option E
+   below (Vercel not honoring a custom `buildCommand` for a recognized framework like Next.js,
+   which defaults to plain `next build` and would otherwise never see a compiled
+   `@thrifty/shared`) — `installCommand` was the one override confirmed to actually be honored
+   against a real deployment for `apps/server`, so this reuses that same lever instead of betting
+   on `buildCommand` again.
+4. **Not yet tested against a real Vercel deployment** — same caveat as the rest of this doc: this
+   config is written from the documented, confirmed-working pattern for `apps/server`'s Vercel
+   setup, but no live `apps/web` deployment has actually been run yet. Fix forward from whatever
+   the first real deploy's logs report rather than assuming this is exactly right.

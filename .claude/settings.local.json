@@ -24,7 +24,8 @@
       "WebFetch(domain:www.amazon.com)",
       "Bash(git mv *)",
       "WebFetch(domain:razorpay.com)",
-      "WebFetch(domain:postmarkapp.com)"
+      "WebFetch(domain:postmarkapp.com)",
+      "Bash(ls -la ~/thrifty-web 2>&1 | head -30; echo \"---check for git remote---\"; cd \"/Users/akashtomar/My Claude Applications\" && git remote -v)"
     ]
   }
 }

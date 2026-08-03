@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* Kept in sync with src/lib/theme/tokens.ts (ported from apps/mobile/src/theme/colors.ts). */
+@theme {
+  --color-slate-50: #f7f8fc;
+  --color-slate-100: #eef0f9;
+  --color-slate-150: #e3e6f3;
+  --color-slate-200: #d2d6ea;
+  --color-slate-300: #afb6d6;
+  --color-slate-400: #8891be;
+  --color-slate-500: #6570a8;
+  --color-slate-600: #4a5488;
+  --color-slate-700: #333c66;
+  --color-slate-800: #232a4a;
+  --color-slate-900: #161b33;
+  --color-slate-950: #0b0e1f;
+
+  --color-page: #f7f8fc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eef0f9;
+  --color-surface-selected: #161b33;
+
+  --color-border: #e3e6f3;
+  --color-border-strong: #afb6d6;
+
+  --color-ink: #161b33;
+  --color-ink-secondary: #4a5488;
+  --color-ink-muted: #8891be;
+  --color-ink-inverse: #ffffff;
+
+  --color-primary: #161b33;
+  --color-primary-pressed: #232a4a;
+  --color-accent: #4a5488;
+  --color-accent-soft: #d2d6ea;
+
+  --color-danger: #8b4a5c;
+  --color-danger-soft: #f6e9ec;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+}
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-ink);
+}
