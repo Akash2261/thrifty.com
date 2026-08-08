@@ -7,7 +7,7 @@ WORKDIR /repo
 
 # Install once, keyed off lockfile + package.json files only, so source-only changes don't bust
 # the dependency-install cache layer.
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json tsconfig.base.json ./
 COPY apps/server/package.json apps/server/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN npm ci
