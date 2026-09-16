@@ -177,6 +177,22 @@ these need code changes, only accounts + env vars on the deployed server.
       request URL (separate from in-app deletion) for apps with a public store listing;
       built and published as a hosted page (see the "Delete account" Artifact URL in
       Play Console's Data safety → "Delete account URL" field).
+- [ ] **Deferred, deliberately** — Play Console's post-release "For your next release"
+      panel flags two things, investigated but not acted on:
+      - "Deprecated APIs for edge-to-edge" — traced to deprecated calls
+        (`setStatusBarColor`/`setNavigationBarColor`/etc.) inside React Native's own
+        StatusBar module and `react-native-screens`, not anything in this app's code. A
+        widespread ecosystem-wide warning as of Android 15, non-blocking, will resolve via
+        a future React Native/Expo/react-native-screens update — nothing to fix here.
+      - "Remove resizability/orientation restrictions for large screens" — the direct fix
+        is removing `"orientation": "portrait"` from `app.json`. Deliberately **not**
+        done: that lock also controls rotation on regular phones, and the whole UI (bottom
+        tabs, full-width lists) has never been designed or tested for landscape. Android
+        16 will ignore the restriction on large screens regardless (falling back to its
+        own letterboxing/compat mode), so keeping the lock mostly just suppresses this
+        warning rather than protecting anything — but removing it introduces real,
+        untested landscape-rotation risk on phones, which are ~all of the current user
+        base. Revisit once there's actual appetite for tablet/landscape support.
 
 ## Phase 5 — Real-device testing
 - [ ] Everything this session has only been verified via browser-preview and curl/script
