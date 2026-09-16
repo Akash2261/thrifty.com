@@ -44,6 +44,7 @@ export default function AppTabsLayout() {
       />
       <Tabs.Screen name="email-connections" options={{ title: "Connect email", href: null }} />
       <Tabs.Screen name="email-review" options={{ title: "Review receipts", href: null }} />
+      <Tabs.Screen name="email-callback" options={{ title: "Connecting…", href: null }} />
       <Tabs.Screen name="whatsapp-link" options={{ title: "Link WhatsApp", href: null }} />
       <Tabs.Screen name="claims" options={{ title: "Claims", href: null }} />
       <Tabs.Screen name="household" options={{ title: "Household", href: null }} />
