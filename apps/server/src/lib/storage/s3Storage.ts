@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { AppError } from "../errors";
 import type { StorageProvider } from "./storageProvider";
 
@@ -71,6 +71,18 @@ export const s3Storage: StorageProvider = {
     } catch (err) {
       console.error("S3 download failed", err);
       throw new AppError("Couldn't retrieve that image.", 502);
+    }
+  },
+
+  async delete(key) {
+    const s3 = getClient();
+    const bucket = getBucket();
+
+    try {
+      await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    } catch (err) {
+      console.error("S3 delete failed", err);
+      throw new AppError("Couldn't delete that image.", 502);
     }
   },
 };

@@ -109,10 +109,8 @@ We do not share your data with advertisers or data brokers.
   data".
 - **Delete your account** — Settings → "Delete account". This permanently deletes your
   account and the data directly tied to it (warranty items, subscriptions, connections,
-  claims, notifications). If you own a shared household, deleting your account dissolves
-  it for all members. This action cannot be undone.
-  [LEGAL/ENG TODO before publishing: confirm retention/deletion timeline for uploaded
-  receipt images in cloud/local storage — see LAUNCH_CHECKLIST.md.]
+  claims, notifications, and any uploaded receipt images). If you own a shared household,
+  deleting your account dissolves it for all members. This action cannot be undone.
 
 ## 6. Data retention
 We retain your data until you delete your account, except where we're required by law to

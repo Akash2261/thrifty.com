@@ -163,13 +163,20 @@ these need code changes, only accounts + env vars on the deployed server.
         household, deleted the owner's account, confirmed the account was fully gone
         (404 on `/auth/me`), the household was dissolved for the remaining member
         (`household: null`), and the remaining member's own account was unaffected.
-- [ ] **Known gap — not done:** uploaded receipt images in local disk/S3/R2 storage are
-      **not** deleted when an account is deleted (`StorageProvider` has no `delete()`
-      method yet). Add one and call it from `deleteAccount()` before relying on the
-      privacy policy's deletion language being fully accurate.
-- [ ] Consider whether Play's User Data policy expects a **web-based** account-deletion
-      request path too (in addition to in-app), referenced from the Data Safety section —
-      common for apps with sensitive categories.
+- [x] **DONE** — uploaded receipt images are now deleted from storage (local disk or
+      S3/R2, whichever `StorageProvider` is active) as part of `deleteAccount()`. Added
+      `delete(key)` to the `StorageProvider` interface (implemented in both
+      `localDiskStorage.ts` and `s3Storage.ts`), collects each user's `WarrantyItem`
+      image keys *before* the cascading DB delete removes those rows (that's the only
+      place the keys exist), then deletes each image best-effort after the DB delete
+      succeeds — one failed image delete doesn't block the rest or leave the account
+      half-deleted. **Verified live**: seeded a real file on local disk + a `WarrantyItem`
+      row pointing at it, called `DELETE /auth/account`, confirmed both the DB rows and
+      the on-disk file were gone afterward.
+- [x] **DONE** — Play Console's Data Safety form requires a web-based account-deletion
+      request URL (separate from in-app deletion) for apps with a public store listing;
+      built and published as a hosted page (see the "Delete account" Artifact URL in
+      Play Console's Data safety → "Delete account URL" field).
 
 ## Phase 5 — Real-device testing
 - [ ] Everything this session has only been verified via browser-preview and curl/script

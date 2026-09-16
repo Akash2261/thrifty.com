@@ -1,5 +1,6 @@
 import { prisma } from "../../db/prisma";
 import { hashPassword, verifyPassword } from "../../lib/password";
+import { deleteReceiptImage } from "../../lib/receiptStorage";
 
 export class AuthError extends Error {
   constructor(message: string) {
@@ -43,9 +44,14 @@ export async function getUserById(id: string) {
 // relations throughout schema.prisma) — receipts, subscriptions, bank/email/WhatsApp
 // connections, claims, notifications, etc. all go with it automatically.
 //
-// Known gap: uploaded receipt images on local disk/S3 are NOT cleaned up here — StorageProvider
-// doesn't have a delete method yet. Tracked in LAUNCH_CHECKLIST.md rather than silently ignored.
 export async function deleteAccount(userId: string) {
+  // Collect receipt image keys before the cascading delete below removes the WarrantyItem rows
+  // that reference them — this is the only place those keys exist.
+  const itemsWithImages = await prisma.warrantyItem.findMany({
+    where: { userId, sourceImageUrl: { not: null } },
+    select: { sourceImageUrl: true },
+  });
+
   const membership = await prisma.householdMember.findFirst({ where: { userId } });
   if (membership?.role === "owner") {
     // Dissolve the household for every member rather than leave it ownerless — same behavior as
@@ -54,4 +60,14 @@ export async function deleteAccount(userId: string) {
   }
 
   await prisma.user.delete({ where: { id: userId } });
+
+  // Best-effort, and after the DB delete has already succeeded: a storage hiccup here shouldn't
+  // leave the account half-deleted, and one image's failure shouldn't block the rest.
+  await Promise.all(
+    itemsWithImages.map(({ sourceImageUrl }) =>
+      deleteReceiptImage(sourceImageUrl!).catch((err) =>
+        console.error(`Failed to delete receipt image ${sourceImageUrl} during account deletion`, err),
+      ),
+    ),
+  );
 }

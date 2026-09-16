@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { StorageProvider } from "./storageProvider";
 
@@ -15,5 +15,14 @@ export const localDiskStorage: StorageProvider = {
 
   async read(key) {
     return readFile(path.join(UPLOADS_DIR, path.basename(key)));
+  },
+
+  async delete(key) {
+    try {
+      await unlink(path.join(UPLOADS_DIR, path.basename(key)));
+    } catch (err) {
+      // Already gone (or never existed) is a fine outcome for a delete — anything else, surface it.
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    }
   },
 };

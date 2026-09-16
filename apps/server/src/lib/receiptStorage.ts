@@ -15,3 +15,7 @@ export async function saveReceiptImage(buffer: Buffer, extension: string): Promi
 export async function readReceiptImage(filename: string): Promise<Buffer> {
   return getStorageProvider().read(filename);
 }
+
+export async function deleteReceiptImage(filename: string): Promise<void> {
+  return getStorageProvider().delete(filename);
+}
