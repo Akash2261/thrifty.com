@@ -25,7 +25,8 @@
       "channel": "production",
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://thrifty-com-server.vercel.app"
+        "EXPO_PUBLIC_API_BASE_URL": "https://thrifty-com-server.vercel.app",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     }
   },

@@ -1,3 +1,4 @@
+import { Ionicons } from "@react-native-vector-icons/ionicons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -8,12 +9,14 @@ import { listSubscriptions } from "../../src/api/substop";
 import { nextDeadline } from "../../src/lib/warrantyDisplay";
 import { displayIdentity } from "../../src/lib/userDisplay";
 import { cardShadow, colors, radii, spacing } from "../../src/theme/colors";
+import { Badge } from "../../src/components/Badge";
+import { RowIcon, type RowIconKind } from "../../src/components/RowIcon";
 
 type FilterKind = "all" | "warranty" | "return" | "subscription";
 
 interface DashboardEntry {
   id: string;
-  kind: "warranty" | "return" | "subscription";
+  kind: RowIconKind;
   title: string;
   subtitle: string;
   urgent: boolean;
@@ -117,7 +120,8 @@ export default function HomeScreen() {
       </View>
 
       {visibleEntries.length === 0 ? (
-        <View style={styles.card}>
+        <View style={[styles.card, styles.emptyCard]}>
+          <Ionicons name="sparkles-outline" size={24} color={colors.textMuted} />
           <Text style={styles.cardBody}>
             Nothing here yet. Snap a receipt in the Warranty tab or link a bank in SubStop to get
             started.
@@ -126,8 +130,15 @@ export default function HomeScreen() {
       ) : (
         visibleEntries.map((entry) => (
           <Pressable key={`${entry.kind}-${entry.id}`} style={styles.row} onPress={entry.onPress}>
-            <Text style={styles.rowTitle}>{entry.title}</Text>
-            <Text style={[styles.rowSubtitle, entry.urgent && styles.rowSubtitleUrgent]}>{entry.subtitle}</Text>
+            <RowIcon kind={entry.kind} />
+            <Text style={styles.rowTitle} numberOfLines={1}>
+              {entry.title}
+            </Text>
+            {entry.kind === "subscription" ? (
+              <Text style={styles.rowSubtitle}>{entry.subtitle}</Text>
+            ) : (
+              <Badge label={entry.subtitle} tone={entry.urgent ? "urgent" : "neutral"} />
+            )}
           </Pressable>
         ))
       )}
@@ -160,7 +171,8 @@ const styles = StyleSheet.create({
   filterChipText: { fontSize: 13, color: colors.textSecondary, fontWeight: "600" },
   filterChipTextActive: { color: colors.textInverse },
   card: { backgroundColor: colors.surfaceAlt, borderRadius: radii.lg, padding: spacing.lg },
-  cardBody: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
+  emptyCard: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  cardBody: { flex: 1, fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -171,8 +183,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+    gap: spacing.md,
   },
-  rowTitle: { fontSize: 15, fontWeight: "600", flex: 1, marginRight: spacing.sm, color: colors.textPrimary },
+  rowTitle: { fontSize: 15, fontWeight: "600", flex: 1, color: colors.textPrimary },
   rowSubtitle: { fontSize: 13, color: colors.textSecondary },
-  rowSubtitleUrgent: { color: colors.textPrimary, fontWeight: "700" },
 });

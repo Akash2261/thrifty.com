@@ -72,10 +72,13 @@ these need code changes, only accounts + env vars on the deployed server.
       + bucket credentials); local disk storage is dev-only.
 
 ## Phase 2 — Android build configuration
-- [x] **DONE** — `android.package` and `ios.bundleIdentifier` set to the final
-      `com.one10.thrifty` in `app.json`. Remember this is **immutable after your first
-      Play Store publish** — double-check it's correct before that first production
-      submit.
+- [x] **DONE** — `android.package` set to `com.One10.thrifty` in `app.json` (note the
+      capital "O" — this had to match what Play Console had already locked in during
+      account/app setup, even though the Android convention is all-lowercase; `ios.
+      bundleIdentifier` is still `com.one10.thrifty`, lowercase — the two platforms don't
+      need to match each other, just whatever each store already expects). Remember the
+      Android package name is **immutable after your first Play Store publish** — double
+      check it's correct before that first production submit.
 - [x] **DONE** — `eas.json` created with `development`/`preview`/`production` build
       profiles, plus a `submit.production.android` block wired for `eas submit`
       (references `./google-play-service-account.json`, gitignored, doesn't exist yet).
@@ -100,7 +103,7 @@ these need code changes, only accounts + env vars on the deployed server.
       push notifications work in a real production build (they're currently only
       registered client-side; nothing in this repo sets up Android's messaging
       credentials). You need: (1) a Firebase project linked to this same
-      `com.one10.thrifty` package, (2) its `google-services.json` downloaded and placed at
+      `com.One10.thrifty` package, (2) its `google-services.json` downloaded and placed at
       `apps/mobile/google-services.json`, referenced via `android.googleServicesFile` in
       `app.json` (not added yet — don't add that config line until the real file exists,
       or EAS builds will fail looking for a missing file), and (3) a separate Firebase

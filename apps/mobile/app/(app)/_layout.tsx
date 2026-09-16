@@ -1,10 +1,15 @@
+import { Ionicons } from "@react-native-vector-icons/ionicons";
+import type { IoniconsIconName } from "@react-native-vector-icons/ionicons";
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
 import { usePushRegistration } from "../../src/hooks/usePushRegistration";
 import { colors } from "../../src/theme/colors";
 
-function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
-  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.55 }}>{symbol}</Text>;
+// Outline glyph when inactive, filled glyph when focused — the standard iOS/Android tab-bar
+// convention, and a much clearer "you are here" signal than the previous opacity-only change.
+function TabIcon({ name, focused }: { name: IoniconsIconName; focused: boolean }) {
+  return (
+    <Ionicons name={focused ? name : (`${name}-outline` as IoniconsIconName)} size={22} color={focused ? colors.textPrimary : colors.textMuted} />
+  );
 }
 
 export default function AppTabsLayout() {
@@ -23,19 +28,19 @@ export default function AppTabsLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{ title: "Home", tabBarIcon: ({ focused }) => <TabIcon symbol="🏠" focused={focused} /> }}
+        options={{ title: "Home", tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} /> }}
       />
       <Tabs.Screen
         name="warranty"
-        options={{ title: "Warranty", tabBarIcon: ({ focused }) => <TabIcon symbol="🧾" focused={focused} /> }}
+        options={{ title: "Warranty", tabBarIcon: ({ focused }) => <TabIcon name="receipt" focused={focused} /> }}
       />
       <Tabs.Screen
         name="substop"
-        options={{ title: "SubStop", tabBarIcon: ({ focused }) => <TabIcon symbol="💳" focused={focused} /> }}
+        options={{ title: "SubStop", tabBarIcon: ({ focused }) => <TabIcon name="card" focused={focused} /> }}
       />
       <Tabs.Screen
         name="settings"
-        options={{ title: "Settings", tabBarIcon: ({ focused }) => <TabIcon symbol="⚙️" focused={focused} /> }}
+        options={{ title: "Settings", tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} /> }}
       />
       <Tabs.Screen name="email-connections" options={{ title: "Connect email", href: null }} />
       <Tabs.Screen name="email-review" options={{ title: "Review receipts", href: null }} />

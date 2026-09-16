@@ -13,12 +13,12 @@
 > - Retention periods — this draft describes current behavior, not necessarily the
 >   retention periods you want to legally commit to
 >
-> Once reviewed and finalized, this file can be published (e.g. as a hosted Artifact) to
-> get a real URL for the Play Console "Privacy Policy" field and the app's own
-> settings/legal screen.
+> Published as a hosted Artifact (see LAUNCH_CHECKLIST.md for the current URL) for the
+> Play Console "Privacy Policy" field — still pending the legal review above before it
+> should be treated as final.
 
-**Last updated:** [FILL IN ON PUBLISH]
-**Effective date:** [FILL IN ON PUBLISH]
+**Last updated:** 5 August 2026
+**Effective date:** 5 August 2026
 
 ## 1. Who we are
 
@@ -27,7 +27,8 @@ subscriptions, and helps you cancel subscriptions you no longer use. Thrifty is 
 to users in India only. This policy describes what data the App collects, why, and how
 you can control or delete it.
 
-[COMPANY LEGAL NAME, ADDRESS, CONTACT EMAIL — FILL IN]
+Thrifty is operated by Akash Tomar, an individual developer based in India. For privacy
+questions, requests, or concerns, contact akasttomar@gmail.com.
 
 ## 2. Data we collect
 
@@ -114,16 +115,25 @@ We do not share your data with advertisers or data brokers.
   receipt images in cloud/local storage — see LAUNCH_CHECKLIST.md.]
 
 ## 6. Data retention
-[FILL IN once retention periods are legally decided — e.g. "we retain your data until
-you delete your account, except where we are required by law to retain records
-longer."]
+We retain your data until you delete your account, except where we're required by law to
+retain certain records for longer. Once you delete your account, the data described in
+Section 5 above is permanently removed from our active systems.
 
 ## 7. Children's privacy
 Thrifty is not directed at children under 18 (or the age of majority in your
 jurisdiction) and we do not knowingly collect data from them.
 
 ## 8. Changes to this policy
-[FILL IN — standard "we may update this policy and will notify you" language.]
+We may update this policy from time to time as Thrifty's features change or as required
+by law. If we make a material change, we'll notify you in the app or by email before it
+takes effect. The "Last updated" date at the top of this page always reflects the most
+recent version.
 
 ## 9. Contact us
-[FILL IN — support email / grievance officer contact required under DPDP.]
+For any question about this policy, a data request, or a privacy concern — including as
+Thrifty's designated contact for grievances under India's DPDP Act — reach out and we'll
+respond as promptly as possible, within the timelines required by applicable law.
+
+**Contact / Grievance Officer:** Akash Tomar
+**Email:** akasttomar@gmail.com
+**Jurisdiction:** India

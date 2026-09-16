@@ -10,11 +10,14 @@ import {
   Text,
   View,
 } from "react-native";
+import { Ionicons } from "@react-native-vector-icons/ionicons";
 import type { DetectedSubscription, LinkedBankAccount } from "@thrifty/shared";
 import { ApiError } from "../../../src/api/client";
 import { confirmSubscriptionInUse, listLinkedAccounts, listSubscriptions, syncBankAccounts } from "../../../src/api/substop";
 import { track } from "../../../src/lib/analytics";
 import { cardShadow, colors, radii, spacing } from "../../../src/theme/colors";
+import { Badge } from "../../../src/components/Badge";
+import { RowIcon } from "../../../src/components/RowIcon";
 
 const CADENCE_LABEL: Record<DetectedSubscription["cadence"], string> = {
   weekly: "Weekly",
@@ -114,12 +117,16 @@ export default function SubStopScreen() {
   if (!accounts || accounts.length === 0) {
     return (
       <View style={styles.centered}>
+        <View style={styles.emptyIconCircle}>
+          <Ionicons name="search-outline" size={28} color={colors.accent} />
+        </View>
         <Text style={styles.emptyTitle}>Find your subscription leakage</Text>
         <Text style={styles.emptyBody}>
           Securely link a bank or card (read-only) and Thrifty will scan your last 3 months of
           transactions for recurring subscriptions.
         </Text>
         <Pressable style={styles.linkButton} onPress={handleLinkBankPress}>
+          <Ionicons name="link-outline" size={16} color={colors.textInverse} />
           <Text style={styles.linkButtonText}>Link a bank or card</Text>
         </Pressable>
       </View>
@@ -152,12 +159,13 @@ export default function SubStopScreen() {
       }
       renderItem={({ item }) => (
         <Pressable style={styles.row} onPress={() => handleConfirm(item)}>
-          <View style={{ flex: 1 }}>
+          <RowIcon kind="subscription" />
+          <View style={{ flex: 1, gap: 4 }}>
             <Text style={styles.rowTitle}>{item.displayName}</Text>
             <Text style={styles.rowSubtitle}>
               {CADENCE_LABEL[item.cadence]} · {sourceLabel(item)}
             </Text>
-            {item.status === "flagged" && <Text style={styles.flagged}>Flagged as unused</Text>}
+            {item.status === "flagged" && <Badge label="Flagged as unused" tone="urgent" />}
           </View>
           <Text style={styles.amount}>
             {item.currency} {item.avgAmount.toFixed(2)}
@@ -170,9 +178,21 @@ export default function SubStopScreen() {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xxxl, gap: spacing.md, backgroundColor: colors.background },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.accentSoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.xs,
+  },
   emptyTitle: { fontSize: 18, fontWeight: "700", textAlign: "center", color: colors.textPrimary },
   emptyBody: { fontSize: 14, color: colors.textSecondary, textAlign: "center", lineHeight: 20 },
   linkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
     backgroundColor: colors.primary,
     borderRadius: radii.md,
     paddingVertical: spacing.md + 2,
@@ -199,7 +219,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   rowTitle: { fontSize: 16, fontWeight: "600", color: colors.textPrimary },
-  rowSubtitle: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
-  flagged: { fontSize: 12, color: colors.textPrimary, fontWeight: "700", marginTop: spacing.xs },
+  rowSubtitle: { fontSize: 13, color: colors.textMuted },
   amount: { fontSize: 16, fontWeight: "600", color: colors.textPrimary },
 });

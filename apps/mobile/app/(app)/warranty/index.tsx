@@ -12,6 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Ionicons } from "@react-native-vector-icons/ionicons";
 import type { WarrantyItem } from "@thrifty/shared";
 import { listWarrantyItems, uploadReceipt } from "../../../src/api/warranty";
 import { ApiError } from "../../../src/api/client";
@@ -19,6 +20,8 @@ import { nextDeadline } from "../../../src/lib/warrantyDisplay";
 import { useUpgrade } from "../../../src/hooks/useUpgrade";
 import { track } from "../../../src/lib/analytics";
 import { cardShadow, colors, radii, spacing } from "../../../src/theme/colors";
+import { Badge } from "../../../src/components/Badge";
+import { RowIcon } from "../../../src/components/RowIcon";
 
 // Phone cameras routinely produce 12MP+ photos — far more resolution than Claude's vision API
 // needs to read a receipt, and a needless multi-MB upload on a slow connection. Downscaling to a
@@ -127,6 +130,7 @@ export default function WarrantyListScreen() {
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.empty}>
+              <Ionicons name="receipt-outline" size={40} color={colors.textMuted} />
               <Text style={styles.emptyTitle}>No receipts yet</Text>
               <Text style={styles.emptyBody}>
                 Snap a photo of a receipt and Thrifty will find its return window and warranty
@@ -142,14 +146,13 @@ export default function WarrantyListScreen() {
               style={styles.row}
               onPress={() => router.push({ pathname: "/warranty/[id]", params: { id: item.id } })}
             >
-              <View style={{ flex: 1 }}>
+              <RowIcon kind={deadline?.kind === "return" ? "return" : "warranty"} />
+              <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.rowTitle} numberOfLines={2}>
                   {item.itemName}
                 </Text>
                 <Text style={styles.rowSubtitle}>{item.retailer ?? "Unknown retailer"}</Text>
-                {deadline && (
-                  <Text style={[styles.badge, deadline.urgent && styles.badgeUrgent]}>{deadline.label}</Text>
-                )}
+                {deadline && <Badge label={deadline.label} tone={deadline.urgent ? "urgent" : "neutral"} />}
               </View>
             </Pressable>
           );
@@ -157,7 +160,14 @@ export default function WarrantyListScreen() {
       />
 
       <Pressable style={styles.fab} onPress={confirmSource} disabled={isUploading}>
-        {isUploading ? <ActivityIndicator color={colors.textInverse} /> : <Text style={styles.fabText}>+ Add receipt</Text>}
+        {isUploading ? (
+          <ActivityIndicator color={colors.textInverse} />
+        ) : (
+          <>
+            <Ionicons name="camera" size={16} color={colors.textInverse} />
+            <Text style={styles.fabText}>Add receipt</Text>
+          </>
+        )}
       </Pressable>
     </View>
   );
@@ -183,13 +193,14 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   rowTitle: { fontSize: 16, fontWeight: "600", color: colors.textPrimary },
-  rowSubtitle: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
-  badge: { fontSize: 12, color: colors.textSecondary, marginTop: spacing.xs },
-  badgeUrgent: { color: colors.textPrimary, fontWeight: "700" },
+  rowSubtitle: { fontSize: 13, color: colors.textMuted },
   fab: {
     position: "absolute",
     right: spacing.xl,
     bottom: spacing.xxl,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
