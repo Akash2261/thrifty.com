@@ -68,10 +68,30 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.label}>{user?.email ? "Email" : "Phone"}</Text>
-        <Text style={styles.value}>{user?.email ?? user?.phoneNumber}</Text>
-      </View>
+      {user?.name ? (
+        <View style={styles.section}>
+          <Text style={styles.label}>Name</Text>
+          <Text style={styles.value}>{user.name}</Text>
+        </View>
+      ) : null}
+      {user?.email ? (
+        <View style={styles.section}>
+          <Text style={styles.label}>Email</Text>
+          <Text style={styles.value}>{user.email}</Text>
+        </View>
+      ) : null}
+      {user?.phoneNumber ? (
+        <View style={styles.section}>
+          <Text style={styles.label}>Phone</Text>
+          <Text style={styles.value}>{user.phoneNumber}</Text>
+        </View>
+      ) : null}
+      {user?.dateOfBirth ? (
+        <View style={styles.section}>
+          <Text style={styles.label}>Date of birth</Text>
+          <Text style={styles.value}>{user.dateOfBirth}</Text>
+        </View>
+      ) : null}
       <View style={styles.section}>
         <Text style={styles.label}>Plan</Text>
         <Text style={styles.value}>{user?.tier === "premium" ? "Premium" : "Free (5 items)"}</Text>

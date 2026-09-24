@@ -8,14 +8,17 @@ import { colors, radii, spacing } from "../src/theme/colors";
 
 export default function SignUpScreen() {
   const { signUp } = useSession();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit() {
     setIsSubmitting(true);
     try {
-      await signUp(email.trim(), password);
+      await signUp(name.trim(), email.trim(), phoneNumber.trim(), dateOfBirth.trim(), password);
       track("signup_completed", { method: "password" });
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Unable to create your account";
@@ -29,6 +32,7 @@ export default function SignUpScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Create your account</Text>
 
+      <TextInput style={styles.input} placeholder="Name" autoCapitalize="words" value={name} onChangeText={setName} />
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -36,6 +40,22 @@ export default function SignUpScreen() {
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Phone (e.g. +919876543210)"
+        autoCapitalize="none"
+        keyboardType="phone-pad"
+        value={phoneNumber}
+        onChangeText={setPhoneNumber}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Date of birth (YYYY-MM-DD)"
+        autoCapitalize="none"
+        keyboardType="numbers-and-punctuation"
+        value={dateOfBirth}
+        onChangeText={setDateOfBirth}
       />
       <TextInput
         style={styles.input}

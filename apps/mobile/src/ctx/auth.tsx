@@ -21,7 +21,7 @@ interface SessionContextValue {
   user: User | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, phoneNumber: string, dateOfBirth: string, password: string) => Promise<void>;
   sendOtp: (phoneNumber: string) => Promise<void>;
   verifyOtp: (phoneNumber: string, code: string) => Promise<void>;
   signInWithGoogle: (idToken: string) => Promise<void>;
@@ -88,8 +88,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
         await storeTokens(res.accessToken, res.refreshToken);
         setUser(res.user);
       },
-      async signUp(email, password) {
-        const res = await signup({ email, password });
+      async signUp(name, email, phoneNumber, dateOfBirth, password) {
+        const res = await signup({ name, email, phoneNumber, dateOfBirth, password });
         await storeTokens(res.accessToken, res.refreshToken);
         setUser(res.user);
       },
