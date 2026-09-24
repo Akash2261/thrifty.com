@@ -65,12 +65,33 @@ export default function SettingsPage() {
     <div className="flex flex-col gap-5">
       <h1 className="text-2xl font-bold text-ink">Settings</h1>
 
-      <div className="flex flex-col gap-1">
-        <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">
-          {user.email ? "Email" : "Phone"}
-        </p>
-        <p className="text-base text-ink">{user.email ?? user.phoneNumber}</p>
-      </div>
+      {user.name ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Name</p>
+          <p className="text-base text-ink">{user.name}</p>
+        </div>
+      ) : null}
+
+      {user.email ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Email</p>
+          <p className="text-base text-ink">{user.email}</p>
+        </div>
+      ) : null}
+
+      {user.phoneNumber ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Phone</p>
+          <p className="text-base text-ink">{user.phoneNumber}</p>
+        </div>
+      ) : null}
+
+      {user.dateOfBirth ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Date of birth</p>
+          <p className="text-base text-ink">{user.dateOfBirth}</p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-1">
         <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Plan</p>

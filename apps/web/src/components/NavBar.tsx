@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useSession } from "@/context/session-context";
+import { displayIdentity } from "@/lib/userDisplay";
 
 const LINKS = [
   { href: "/", label: "Home" },
@@ -40,9 +41,7 @@ export function NavBar() {
           })}
         </nav>
         <div className="flex items-center gap-3">
-          <span className="hidden text-sm text-ink-secondary sm:inline">
-            {user.email ?? user.phoneNumber}
-          </span>
+          <span className="hidden text-sm text-ink-secondary sm:inline">{displayIdentity(user)}</span>
           <button
             onClick={() => void signOut()}
             className="text-sm font-semibold text-ink-secondary hover:text-danger"

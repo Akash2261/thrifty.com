@@ -1,8 +1,14 @@
 import { z } from "zod";
 import { UserSchema } from "./user";
 
+// E.164 format, e.g. +919876543210
+const PHONE_NUMBER_REGEX = /^\+[1-9]\d{7,14}$/;
+
 export const SignupRequestSchema = z.object({
+  name: z.string().min(1, "Name is required"),
   email: z.string().email(),
+  phoneNumber: z.string().regex(PHONE_NUMBER_REGEX, "Use E.164 format, e.g. +919876543210"),
+  dateOfBirth: z.string().date("Enter a valid date of birth"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 export type SignupRequest = z.infer<typeof SignupRequestSchema>;
@@ -30,9 +36,6 @@ export const RefreshResponseSchema = z.object({
   refreshToken: z.string(),
 });
 export type RefreshResponse = z.infer<typeof RefreshResponseSchema>;
-
-// E.164 format, e.g. +919876543210
-const PHONE_NUMBER_REGEX = /^\+[1-9]\d{7,14}$/;
 
 export const SendOtpRequestSchema = z.object({
   phoneNumber: z.string().regex(PHONE_NUMBER_REGEX, "Use E.164 format, e.g. +919876543210"),

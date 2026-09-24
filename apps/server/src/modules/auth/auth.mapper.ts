@@ -6,8 +6,10 @@ const INBOUND_EMAIL_DOMAIN = process.env.INBOUND_EMAIL_DOMAIN || "inbound.exampl
 export function toPublicUser(user: PrismaUser): User {
   return {
     id: user.id,
+    name: user.name,
     email: user.email,
     phoneNumber: user.phoneNumber,
+    dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : null,
     authProvider: user.authProvider,
     tier: user.tier,
     inboundEmail: `${user.inboundEmailToken}@${INBOUND_EMAIL_DOMAIN}`,

@@ -29,7 +29,13 @@ export default async function authRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const user = await createUser(parsed.data.email, parsed.data.password);
+      const user = await createUser(
+        parsed.data.email,
+        parsed.data.password,
+        parsed.data.name,
+        parsed.data.phoneNumber,
+        parsed.data.dateOfBirth,
+      );
       const tokens = await issueTokens(reply, user);
       return reply.code(201).send({ user: toPublicUser(user), ...tokens });
     } catch (err) {

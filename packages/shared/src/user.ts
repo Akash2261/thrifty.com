@@ -16,8 +16,10 @@ export type NotificationPreferences = z.infer<typeof NotificationPreferencesSche
 
 export const UserSchema = z.object({
   id: z.string(),
+  name: z.string().nullable(),
   email: z.string().email().nullable(),
   phoneNumber: z.string().nullable(),
+  dateOfBirth: z.string().nullable(),
   authProvider: AuthProviderSchema,
   tier: TierSchema,
   inboundEmail: z.string(),

@@ -28,8 +28,10 @@ enum AuthProvider {
 
 model User {
   id                      String       @id @default(uuid())
+  name                    String?
   email                   String?      @unique
   phoneNumber             String?      @unique
+  dateOfBirth             DateTime?
   passwordHash            String?
   authProvider            AuthProvider @default(password)
   tier                    Tier         @default(free)

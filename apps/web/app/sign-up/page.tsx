@@ -10,7 +10,10 @@ import { signup } from "@/lib/api/auth";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,7 +23,7 @@ export default function SignUpPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await signup({ email: email.trim(), password });
+      await signup({ name: name.trim(), email: email.trim(), phoneNumber: phoneNumber.trim(), dateOfBirth, password });
       router.push("/");
       router.refresh();
     } catch (err) {
@@ -37,12 +40,39 @@ export default function SignUpPage() {
 
         <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
           <TextField
+            label="Name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <TextField
             label="Email"
             name="email"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <TextField
+            label="Phone (e.g. +919876543210)"
+            name="phoneNumber"
+            type="tel"
+            autoComplete="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            required
+          />
+          <TextField
+            label="Date of birth"
+            name="dateOfBirth"
+            type="date"
+            autoComplete="bday"
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
             required
           />
           <TextField

@@ -9,15 +9,23 @@ export class AuthError extends Error {
   }
 }
 
-export async function createUser(email: string, password: string) {
-  const existing = await prisma.user.findUnique({ where: { email } });
+export async function createUser(
+  email: string,
+  password: string,
+  name: string,
+  phoneNumber: string,
+  dateOfBirth: string,
+) {
+  const existing = await prisma.user.findFirst({ where: { OR: [{ email }, { phoneNumber }] } });
   if (existing) {
-    throw new AuthError("An account with this email already exists");
+    throw new AuthError(
+      existing.email === email ? "An account with this email already exists" : "An account with this phone number already exists",
+    );
   }
 
   const passwordHash = await hashPassword(password);
   return prisma.user.create({
-    data: { email, passwordHash },
+    data: { email, passwordHash, name, phoneNumber, dateOfBirth: new Date(dateOfBirth) },
   });
 }
 
