@@ -16,9 +16,9 @@ everything else needs either your accounts/credentials or a business decision.
       gated by a `CRON_SECRET` env var, wired up as real Vercel Cron Jobs in the same
       `vercel.json`. Postgres is provisioned (Neon, via Vercel's Storage tab) and
       `DATABASE_URL`/`JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET`/`ENCRYPTION_KEY` are all set.
-      **Still confirm `STORAGE_PROVIDER=s3` is set** (mandatory on Vercel — its filesystem
-      doesn't persist between requests at all; not yet confirmed as of this checklist
-      update). This took several real deploy-and-fix iterations (build ordering, env var
+      **`STORAGE_PROVIDER=s3` is now confirmed set**, pointed at Cloudflare R2 (see Phase 1
+      below — its filesystem doesn't persist between requests at all, so this was a real
+      gap, not a precaution). This took several real deploy-and-fix iterations (build ordering, env var
       validation crashing silently, an entrypoint-detection issue, a Fastify/TypeScript
       typing quirk) — each fixed from actual Vercel logs, not guessed. If you hit another
       error later (e.g. after adding more integrations), paste the Runtime Log text and
@@ -48,7 +48,10 @@ Everything below is coded and "inert until configured" — each integration clea
 no-ops or 503s without its credentials, per this session's established pattern. None of
 these need code changes, only accounts + env vars on the deployed server.
 
-- [ ] **Anthropic** — API key for receipt/email extraction (`ANTHROPIC_API_KEY`).
+- [x] **DONE** — **Anthropic** — `ANTHROPIC_API_KEY` set and billed (the account was stuck
+      on "Evaluation access" with no paid credit, which made every extraction call fail
+      with a generic "Couldn't read that receipt" error — not a bug, a billing gap. Fixed
+      by adding a payment method + credits in the Anthropic Console).
 - [ ] **Razorpay** — for billing (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
       webhook secret).
 - [ ] **Setu (Account Aggregator)** — India bank/UPI data; requires a signed FIU partner
@@ -68,8 +71,19 @@ these need code changes, only accounts + env vars on the deployed server.
       request emails) (`POSTMARK_SERVER_TOKEN`).
 - [ ] **Sentry** — crash reporting DSN (server + mobile).
 - [ ] **PostHog** — analytics API key (server + mobile).
-- [ ] **AWS S3 / Cloudflare R2** — production receipt-image storage (`STORAGE_PROVIDER=s3`
-      + bucket credentials); local disk storage is dev-only.
+- [x] **DONE** — **Cloudflare R2** — production receipt-image storage. Bucket
+      `thrifty-receipts` (private, no public access — images are only ever served through
+      the backend's own `/warranty-items/:id/image` route via `GetObjectCommand`, never a
+      direct bucket URL), account-scoped R2 API token, `STORAGE_PROVIDER=s3` +
+      `S3_BUCKET`/`S3_REGION=auto`/`S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY`/
+      `S3_ENDPOINT`/`S3_FORCE_PATH_STYLE=true` set in Vercel. **Verified live end-to-end**:
+      signed up a real test account, uploaded a synthetic receipt image through
+      `POST /receipts`, confirmed AI extraction succeeded, then read the image back
+      through the app's own image route and confirmed the bytes are MD5-identical to what
+      was uploaded (proves the R2 write+read round-trip, not just a non-erroring request).
+      Also confirmed the existing delete-on-account-deletion logic correctly removes the
+      R2 object (image route returned 404 after the test account was deleted). Test
+      account and image cleaned up afterward.
 
 ## Phase 2 — Android build configuration
 - [x] **DONE** — `android.package` set to `com.One10.thrifty` in `app.json` (note the
@@ -211,12 +225,12 @@ these need code changes, only accounts + env vars on the deployed server.
 ---
 
 ## What's genuinely blocking you right now
-The backend is deployed and live, so this list is shorter now. In priority order:
-**(1)** confirm `STORAGE_PROVIDER=s3` (plus real `S3_*` credentials) is set in Vercel —
-receipt uploads are silently broken without it, **(2)** a Play Console developer account +
-its API service account key, **(3)** a Firebase project + `google-services.json` for
-Android push, **(4)** legal review of [PRIVACY_POLICY.md](PRIVACY_POLICY.md), **(5)** an
-`eas login` + real production build (needs your Expo account — not something this session
-can do for you). Everything else in Phase 1 (the third-party credentials — Anthropic,
-Razorpay, Setu, Google/Microsoft OAuth, Twilio, WhatsApp, Postmark, Sentry, PostHog) can be
-added to Vercel's env vars in parallel, no further code changes needed.
+The backend is deployed and live, receipt storage (R2) and AI extraction (Anthropic) are
+both now confirmed working end-to-end, so this list is shorter now. In priority order:
+**(1)** a Play Console developer account + its API service account key, **(2)** a Firebase
+project + `google-services.json` for Android push, **(3)** legal review of
+[PRIVACY_POLICY.md](PRIVACY_POLICY.md), **(4)** an `eas login` + real production build
+(needs your Expo account — not something this session can do for you). Everything else in
+Phase 1 (the remaining third-party credentials — Razorpay, Setu, Google/Microsoft OAuth,
+Twilio, WhatsApp, Postmark, Sentry, PostHog) can be added to Vercel's env vars in parallel,
+no further code changes needed.
