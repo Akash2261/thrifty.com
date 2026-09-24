@@ -28,15 +28,15 @@ import { RowIcon } from "../../../src/components/RowIcon";
 // bounded width before upload cuts upload time/cost with no meaningful loss of legibility.
 const MAX_UPLOAD_WIDTH = 1600;
 
-async function compressReceiptImage(asset: ImagePicker.ImagePickerAsset): Promise<{ uri: string; mimeType: string }> {
+async function compressReceiptImage(asset: ImagePicker.ImagePickerAsset): Promise<string> {
   try {
     const actions = asset.width && asset.width > MAX_UPLOAD_WIDTH ? [{ resize: { width: MAX_UPLOAD_WIDTH } }] : [];
     const result = await manipulateAsync(asset.uri, actions, { compress: 0.6, format: SaveFormat.JPEG });
-    return { uri: result.uri, mimeType: "image/jpeg" };
+    return result.uri;
   } catch {
     // Compression is a perf optimization, not a correctness requirement — fall back to the
     // original image rather than blocking the upload if it fails for any reason.
-    return { uri: asset.uri, mimeType: asset.mimeType ?? "image/jpeg" };
+    return asset.uri;
   }
 }
 
@@ -88,12 +88,8 @@ export default function WarrantyListScreen() {
     setIsUploading(true);
     try {
       const wasFirstItem = items.length === 0;
-      const compressed = await compressReceiptImage(asset);
-      const { item } = await uploadReceipt({
-        uri: compressed.uri,
-        name: asset.fileName ?? "receipt.jpg",
-        type: compressed.mimeType,
-      });
+      const compressedUri = await compressReceiptImage(asset);
+      const { item } = await uploadReceipt(compressedUri);
       track("warranty_item_created", { source, isFirstItem: wasFirstItem });
       await load();
       router.push({ pathname: "/warranty/[id]", params: { id: item.id } });
@@ -105,7 +101,15 @@ export default function WarrantyListScreen() {
         ]);
         return;
       }
-      const message = err instanceof ApiError ? err.message : "Couldn't process that receipt. Try again.";
+      // A non-ApiError here means the request never got a response at all (thrown before or
+      // during fetch — e.g. a device-local network failure) rather than the backend rejecting
+      // it. Surfacing the real error name/message (instead of a fixed generic string) is the
+      // only way to tell those failure modes apart from the outside without device-level logs.
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : `Couldn't process that receipt. (${err instanceof Error ? `${err.name}: ${err.message}` : String(err)})`;
+      console.error("Receipt upload failed", err);
       Alert.alert("Scan failed", message);
     } finally {
       setIsUploading(false);

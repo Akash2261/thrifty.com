@@ -1,19 +1,15 @@
+import { File } from "expo-file-system";
 import type { WarrantyItem, WarrantyItemPatch } from "@thrifty/shared";
 import { authorizedRequest } from "./authClient";
 
-export interface ReceiptImageAsset {
-  uri: string;
-  name: string;
-  type: string;
-}
-
-export function uploadReceipt(asset: ReceiptImageAsset) {
+// Expo's global `fetch` (WinterCG-compliant, in use since SDK 54+ per apps/mobile/AGENTS.md's
+// standing "read the versioned docs" instruction) only accepts real Blob/File instances in a
+// FormData body — the classic React Native `{ uri, name, type }` object throws "Unsupported
+// FormDataPart implementation". `expo-file-system`'s `File` class implements Blob and can be
+// constructed directly from a file:// URI.
+export function uploadReceipt(uri: string) {
   const formData = new FormData();
-  formData.append("image", {
-    uri: asset.uri,
-    name: asset.name,
-    type: asset.type,
-  } as unknown as Blob);
+  formData.append("image", new File(uri));
 
   return authorizedRequest<{ item: WarrantyItem }>("/receipts", {
     method: "POST",
