@@ -41,6 +41,20 @@ export class ApiError extends Error {
   }
 }
 
+// Same contract as apps/web/src/lib/api/client.ts: backend errors are always `{ error: string }`
+// (or `{ error: Record<string,string[]> }` for Zod field errors), surfaced as ApiError.message.
+function extractErrorMessage(body: unknown): string {
+  if (body && typeof body === "object" && "error" in body) {
+    const err = (body as { error: unknown }).error;
+    if (typeof err === "string") return err;
+    if (err && typeof err === "object") {
+      const firstField = Object.values(err as Record<string, unknown>)[0];
+      if (Array.isArray(firstField) && typeof firstField[0] === "string") return firstField[0];
+    }
+  }
+  return "Something went wrong";
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -53,8 +67,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const body = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message = typeof body?.error === "string" ? body.error : "Something went wrong";
-    throw new ApiError(response.status, message);
+    throw new ApiError(response.status, extractErrorMessage(body));
   }
 
   return body as T;
