@@ -10,3 +10,5 @@ build/
 *.log
 .DS_Store
 google-play-service-account.json
+.vercel
+builds/
