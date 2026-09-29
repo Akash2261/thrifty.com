@@ -6,8 +6,9 @@ import {
   SendOtpRequestSchema,
   VerifyOtpRequestSchema,
   SocialSignInRequestSchema,
+  UpdateProfileRequestSchema,
 } from "@thrifty/shared";
-import { createUser, verifyCredentials, getUserById, deleteAccount, AuthError } from "./auth.service";
+import { createUser, verifyCredentials, getUserById, updateProfile, deleteAccount, AuthError } from "./auth.service";
 import { sendOtp, verifyOtpAndSignIn } from "./otp.service";
 import { socialSignIn } from "./socialAuth.service";
 import { toPublicUser } from "./auth.mapper";
@@ -154,6 +155,23 @@ export default async function authRoutes(fastify: FastifyInstance) {
       return reply.code(404).send({ error: "User not found" });
     }
     return reply.send({ user: toPublicUser(user) });
+  });
+
+  fastify.patch("/auth/profile", { preHandler: fastify.authenticate }, async (request, reply) => {
+    const parsed = UpdateProfileRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: parsed.error.flatten().fieldErrors });
+    }
+
+    try {
+      const user = await updateProfile(request.currentUser!.sub, parsed.data);
+      return reply.send({ user: toPublicUser(user) });
+    } catch (err) {
+      if (err instanceof AuthError) {
+        return reply.code(409).send({ error: err.message });
+      }
+      throw err;
+    }
   });
 
   fastify.delete("/auth/account", { preHandler: fastify.authenticate }, async (request, reply) => {

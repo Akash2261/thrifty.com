@@ -1,4 +1,4 @@
-import type { LoginRequest, SendOtpRequest, SignupRequest, User, VerifyOtpRequest } from "@thrifty/shared";
+import type { LoginRequest, SendOtpRequest, SignupRequest, UpdateProfileRequest, User, VerifyOtpRequest } from "@thrifty/shared";
 import { authorizedRequest, request } from "./client";
 
 interface SessionResult {
@@ -27,6 +27,10 @@ export function logout() {
 
 export function fetchMe() {
   return authorizedRequest<SessionResult>("/auth/me");
+}
+
+export function updateProfile(payload: UpdateProfileRequest) {
+  return authorizedRequest<SessionResult>("/auth/profile", { method: "PATCH", body: JSON.stringify(payload) });
 }
 
 export function deleteAccount() {

@@ -43,7 +43,7 @@ export class ApiError extends Error {
 
 // Same contract as apps/web/src/lib/api/client.ts: backend errors are always `{ error: string }`
 // (or `{ error: Record<string,string[]> }` for Zod field errors), surfaced as ApiError.message.
-function extractErrorMessage(body: unknown): string {
+export function extractErrorMessage(body: unknown): string {
   if (body && typeof body === "object" && "error" in body) {
     const err = (body as { error: unknown }).error;
     if (typeof err === "string") return err;

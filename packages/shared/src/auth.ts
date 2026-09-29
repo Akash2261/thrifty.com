@@ -13,6 +13,14 @@ export const SignupRequestSchema = z.object({
 });
 export type SignupRequest = z.infer<typeof SignupRequestSchema>;
 
+export const UpdateProfileRequestSchema = z.object({
+  name: z.string().min(1, "Name is required").optional(),
+  email: z.string().email().optional(),
+  phoneNumber: z.string().regex(PHONE_NUMBER_REGEX, "Use E.164 format, e.g. +919876543210").optional(),
+  dateOfBirth: z.string().date("Enter a valid date of birth").optional(),
+});
+export type UpdateProfileRequest = z.infer<typeof UpdateProfileRequestSchema>;
+
 export const LoginRequestSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),

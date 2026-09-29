@@ -47,6 +47,35 @@ export async function getUserById(id: string) {
   return prisma.user.findUnique({ where: { id } });
 }
 
+export async function updateProfile(
+  userId: string,
+  data: { name?: string; email?: string; phoneNumber?: string; dateOfBirth?: string },
+) {
+  if (data.email || data.phoneNumber) {
+    const existing = await prisma.user.findFirst({
+      where: {
+        id: { not: userId },
+        OR: [...(data.email ? [{ email: data.email }] : []), ...(data.phoneNumber ? [{ phoneNumber: data.phoneNumber }] : [])],
+      },
+    });
+    if (existing) {
+      throw new AuthError(
+        existing.email === data.email ? "An account with this email already exists" : "An account with this phone number already exists",
+      );
+    }
+  }
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.email !== undefined ? { email: data.email } : {}),
+      ...(data.phoneNumber !== undefined ? { phoneNumber: data.phoneNumber } : {}),
+      ...(data.dateOfBirth !== undefined ? { dateOfBirth: new Date(data.dateOfBirth) } : {}),
+    },
+  });
+}
+
 // Google Play (and Apple) require apps that support account creation to also support in-app
 // account deletion. Every user-owned row cascades on delete (see the `onDelete: Cascade`
 // relations throughout schema.prisma) — receipts, subscriptions, bank/email/WhatsApp

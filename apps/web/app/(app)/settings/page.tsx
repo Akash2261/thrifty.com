@@ -6,9 +6,11 @@ import type { NotificationPreferences } from "@thrifty/shared";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Switch } from "@/components/Switch";
+import { TextField } from "@/components/TextField";
 import { useSession } from "@/context/session-context";
 import { updateNotificationPreferences } from "@/lib/api/notifications";
-import { deleteAccount as deleteAccountRequest } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
+import { deleteAccount as deleteAccountRequest, updateProfile } from "@/lib/api/auth";
 
 const PREFERENCE_LABELS: Record<keyof NotificationPreferences, string> = {
   returnWindowReminders: "Return window reminders",
@@ -23,6 +25,42 @@ export default function SettingsPage() {
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [name, setName] = useState(user.name ?? "");
+  const [email, setEmail] = useState(user.email ?? "");
+  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber ?? "");
+  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth ?? "");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSaved, setProfileSaved] = useState(false);
+
+  const profileDirty =
+    name !== (user.name ?? "") ||
+    email !== (user.email ?? "") ||
+    phoneNumber !== (user.phoneNumber ?? "") ||
+    dateOfBirth !== (user.dateOfBirth ?? "");
+
+  async function handleSaveProfile(e: React.FormEvent) {
+    e.preventDefault();
+    setProfileError(null);
+    setProfileSaved(false);
+    setIsSavingProfile(true);
+    try {
+      await updateProfile({
+        ...(name !== (user.name ?? "") ? { name } : {}),
+        ...(email !== (user.email ?? "") ? { email } : {}),
+        ...(phoneNumber !== (user.phoneNumber ?? "") ? { phoneNumber } : {}),
+        ...(dateOfBirth !== (user.dateOfBirth ?? "") ? { dateOfBirth } : {}),
+      });
+      await refreshUser();
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 2000);
+    } catch (err) {
+      setProfileError(err instanceof ApiError ? err.message : "Couldn't save your details. Try again.");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  }
 
   async function handleCopyForwardingEmail() {
     await navigator.clipboard.writeText(user.inboundEmail);
@@ -65,33 +103,32 @@ export default function SettingsPage() {
     <div className="flex flex-col gap-5">
       <h1 className="text-2xl font-bold text-ink">Settings</h1>
 
-      {user.name ? (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Name</p>
-          <p className="text-base text-ink">{user.name}</p>
-        </div>
-      ) : null}
+      <form className="flex flex-col gap-3" onSubmit={handleSaveProfile}>
+        <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Personal details</p>
+        <TextField label="Name" name="name" value={name} onChange={(e) => setName(e.target.value)} />
+        <TextField label="Email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <TextField
+          label="Phone"
+          name="phoneNumber"
+          type="tel"
+          placeholder="+919876543210"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+        />
+        <TextField
+          label="Date of birth"
+          name="dateOfBirth"
+          type="date"
+          value={dateOfBirth}
+          onChange={(e) => setDateOfBirth(e.target.value)}
+        />
 
-      {user.email ? (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Email</p>
-          <p className="text-base text-ink">{user.email}</p>
-        </div>
-      ) : null}
+        {profileError ? <p className="text-sm text-danger">{profileError}</p> : null}
 
-      {user.phoneNumber ? (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Phone</p>
-          <p className="text-base text-ink">{user.phoneNumber}</p>
-        </div>
-      ) : null}
-
-      {user.dateOfBirth ? (
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Date of birth</p>
-          <p className="text-base text-ink">{user.dateOfBirth}</p>
-        </div>
-      ) : null}
+        <Button type="submit" variant="secondary" disabled={!profileDirty || isSavingProfile} className="self-start">
+          {isSavingProfile ? "Saving…" : profileSaved ? "Saved!" : "Save changes"}
+        </Button>
+      </form>
 
       <div className="flex flex-col gap-1">
         <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">Plan</p>

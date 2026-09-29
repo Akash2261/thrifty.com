@@ -1,11 +1,12 @@
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import type { NotificationPreferences } from "@thrifty/shared";
 import { useSession } from "../../src/ctx/auth";
 import { useUpgrade } from "../../src/hooks/useUpgrade";
 import { updateNotificationPreferences } from "../../src/api/notifications";
+import { ApiError } from "../../src/api/client";
 import { colors, radii, spacing } from "../../src/theme/colors";
 
 const PREFERENCE_LABELS: Record<keyof NotificationPreferences, string> = {
@@ -17,11 +18,47 @@ const PREFERENCE_LABELS: Record<keyof NotificationPreferences, string> = {
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { user, signOut, deleteAccount, refreshUser } = useSession();
+  const { user, signOut, deleteAccount, refreshUser, updateProfile } = useSession();
   const { isUpgrading, startUpgrade } = useUpgrade();
   const [copied, setCopied] = useState(false);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [name, setName] = useState(user?.name ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ?? "");
+  const [dateOfBirth, setDateOfBirth] = useState(user?.dateOfBirth ?? "");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  useEffect(() => {
+    setName(user?.name ?? "");
+    setEmail(user?.email ?? "");
+    setPhoneNumber(user?.phoneNumber ?? "");
+    setDateOfBirth(user?.dateOfBirth ?? "");
+  }, [user]);
+
+  const profileDirty =
+    name !== (user?.name ?? "") ||
+    email !== (user?.email ?? "") ||
+    phoneNumber !== (user?.phoneNumber ?? "") ||
+    dateOfBirth !== (user?.dateOfBirth ?? "");
+
+  async function handleSaveProfile() {
+    setIsSavingProfile(true);
+    try {
+      await updateProfile({
+        ...(name !== (user?.name ?? "") ? { name } : {}),
+        ...(email !== (user?.email ?? "") ? { email } : {}),
+        ...(phoneNumber !== (user?.phoneNumber ?? "") ? { phoneNumber } : {}),
+        ...(dateOfBirth !== (user?.dateOfBirth ?? "") ? { dateOfBirth } : {}),
+      });
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Couldn't save your details. Try again.";
+      Alert.alert("Couldn't save", message);
+    } finally {
+      setIsSavingProfile(false);
+    }
+  }
 
   function handleDeleteAccount() {
     Alert.alert(
@@ -68,30 +105,51 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {user?.name ? (
-        <View style={styles.section}>
-          <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>{user.name}</Text>
-        </View>
-      ) : null}
-      {user?.email ? (
-        <View style={styles.section}>
-          <Text style={styles.label}>Email</Text>
-          <Text style={styles.value}>{user.email}</Text>
-        </View>
-      ) : null}
-      {user?.phoneNumber ? (
-        <View style={styles.section}>
-          <Text style={styles.label}>Phone</Text>
-          <Text style={styles.value}>{user.phoneNumber}</Text>
-        </View>
-      ) : null}
-      {user?.dateOfBirth ? (
-        <View style={styles.section}>
-          <Text style={styles.label}>Date of birth</Text>
-          <Text style={styles.value}>{user.dateOfBirth}</Text>
-        </View>
-      ) : null}
+      <View style={styles.section}>
+        <Text style={styles.label}>Personal details</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="words"
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Phone (e.g. +919876543210)"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="none"
+          keyboardType="phone-pad"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Date of birth (YYYY-MM-DD)"
+          placeholderTextColor={colors.textMuted}
+          autoCapitalize="none"
+          keyboardType="numbers-and-punctuation"
+          value={dateOfBirth}
+          onChangeText={setDateOfBirth}
+        />
+        <Pressable
+          style={[styles.saveButton, !profileDirty && styles.saveButtonDisabled]}
+          onPress={handleSaveProfile}
+          disabled={!profileDirty || isSavingProfile}
+        >
+          {isSavingProfile ? <ActivityIndicator color={colors.textInverse} /> : <Text style={styles.saveButtonText}>Save changes</Text>}
+        </Pressable>
+      </View>
       <View style={styles.section}>
         <Text style={styles.label}>Plan</Text>
         <Text style={styles.value}>{user?.tier === "premium" ? "Premium" : "Free (5 items)"}</Text>
@@ -211,6 +269,25 @@ const styles = StyleSheet.create({
   section: { gap: spacing.xs },
   label: { fontSize: 12, fontWeight: "700", color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.4 },
   value: { fontSize: 16, color: colors.textPrimary },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    fontSize: 15,
+    color: colors.textPrimary,
+  },
+  saveButton: {
+    borderRadius: radii.md,
+    paddingVertical: spacing.md,
+    alignItems: "center",
+    backgroundColor: colors.primary,
+    marginTop: spacing.xs,
+  },
+  saveButtonDisabled: { opacity: 0.5 },
+  saveButtonText: { color: colors.textInverse, fontSize: 15, fontWeight: "600" },
   forwardingBody: { fontSize: 13, color: colors.textSecondary, lineHeight: 18, marginTop: 2, marginBottom: spacing.xs },
   forwardingRow: {
     flexDirection: "row",

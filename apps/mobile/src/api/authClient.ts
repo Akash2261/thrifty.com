@@ -1,4 +1,4 @@
-import { API_BASE_URL, ApiError, refresh as refreshTokens } from "./client";
+import { API_BASE_URL, ApiError, extractErrorMessage, refresh as refreshTokens } from "./client";
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, getItem, setItem, deleteItem } from "../lib/tokenStorage";
 import { emitForceSignOut } from "../lib/sessionEvents";
 
@@ -15,8 +15,7 @@ async function doFetch(path: string, accessToken: string, options: RequestInit) 
 async function parseJsonOrThrow<T>(response: Response): Promise<T> {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = typeof body?.error === "string" ? body.error : "Something went wrong";
-    throw new ApiError(response.status, message);
+    throw new ApiError(response.status, extractErrorMessage(body));
   }
   return body as T;
 }

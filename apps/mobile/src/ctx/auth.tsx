@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
-import type { User } from "@thrifty/shared";
+import type { UpdateProfileRequest, User } from "@thrifty/shared";
 import {
   ApiError,
   fetchMe,
@@ -29,6 +29,7 @@ interface SessionContextValue {
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<User>;
+  updateProfile: (payload: UpdateProfileRequest) => Promise<User>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -122,6 +123,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
       },
       async refreshUser() {
         const { user: me } = await authorizedRequest<{ user: User }>("/auth/me");
+        setUser(me);
+        return me;
+      },
+      async updateProfile(payload) {
+        const { user: me } = await authorizedRequest<{ user: User }>("/auth/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
         setUser(me);
         return me;
       },
