@@ -32,10 +32,18 @@ export default function SignUpScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Create your account</Text>
 
-      <TextInput style={styles.input} placeholder="Name" autoCapitalize="words" value={name} onChangeText={setName} />
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        placeholderTextColor={colors.textMuted}
+        autoCapitalize="words"
+        value={name}
+        onChangeText={setName}
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -44,6 +52,7 @@ export default function SignUpScreen() {
       <TextInput
         style={styles.input}
         placeholder="Phone (e.g. +919876543210)"
+        placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         keyboardType="phone-pad"
         value={phoneNumber}
@@ -52,6 +61,7 @@ export default function SignUpScreen() {
       <TextInput
         style={styles.input}
         placeholder="Date of birth (YYYY-MM-DD)"
+        placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         keyboardType="numbers-and-punctuation"
         value={dateOfBirth}
@@ -60,6 +70,7 @@ export default function SignUpScreen() {
       <TextInput
         style={styles.input}
         placeholder="Password (min 8 characters)"
+        placeholderTextColor={colors.textMuted}
         secureTextEntry
         value={password}
         onChangeText={setPassword}

@@ -109,6 +109,7 @@ export default function HouseholdScreen() {
           <TextInput
             style={styles.input}
             placeholder="Household name"
+            placeholderTextColor={colors.textMuted}
             value={householdName}
             onChangeText={setHouseholdName}
           />
@@ -122,6 +123,7 @@ export default function HouseholdScreen() {
           <TextInput
             style={styles.input}
             placeholder="Invite code"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="characters"
             value={inviteCodeInput}
             onChangeText={setInviteCodeInput}

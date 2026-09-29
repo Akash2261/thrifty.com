@@ -49,6 +49,7 @@ export default function PhoneSignInScreen() {
           <TextInput
             style={styles.input}
             placeholder="+919876543210"
+            placeholderTextColor={colors.textMuted}
             keyboardType="phone-pad"
             autoCapitalize="none"
             value={phoneNumber}
@@ -66,6 +67,7 @@ export default function PhoneSignInScreen() {
           <TextInput
             style={styles.input}
             placeholder="123456"
+            placeholderTextColor={colors.textMuted}
             keyboardType="number-pad"
             maxLength={6}
             value={code}

@@ -116,6 +116,7 @@ export default function EmailReviewScreen() {
               value={draft.itemName}
               onChangeText={(text) => updateDraft(item.id, { itemName: text })}
               placeholder="What was this?"
+              placeholderTextColor={colors.textMuted}
             />
 
             <Text style={styles.label}>Retailer</Text>
@@ -124,6 +125,7 @@ export default function EmailReviewScreen() {
               value={draft.retailer}
               onChangeText={(text) => updateDraft(item.id, { retailer: text })}
               placeholder="Optional"
+              placeholderTextColor={colors.textMuted}
             />
 
             <Text style={styles.label}>Price</Text>
@@ -132,6 +134,7 @@ export default function EmailReviewScreen() {
               value={draft.price}
               onChangeText={(text) => updateDraft(item.id, { price: text })}
               placeholder="Optional"
+              placeholderTextColor={colors.textMuted}
               keyboardType="decimal-pad"
             />
 
